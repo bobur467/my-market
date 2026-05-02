@@ -1,283 +1,638 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Uzlevl Market</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        /* UZLEVL PREMIUM THEME: Black & Gold */
-        :root {
-            --bg-color: #0d0d0d;
-            --card-bg: #1a1a1a;
-            --primary-gold: #D4AF37;
-            --text-main: #ffffff;
-            --text-muted: #888888;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>RQB Market</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;500;700&display=swap');
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            margin: 0;
-            padding: 0;
-            padding-bottom: 90px;
-            overflow-x: hidden;
-        }
+:root {
+  --bg: #0a0a0a;
+  --bg2: #131313;
+  --bg3: #1c1c1c;
+  --gold: #c9a84c;
+  --gold2: #e8c76a;
+  --gold-dim: rgba(201,168,76,0.12);
+  --gold-border: rgba(201,168,76,0.22);
+  --text: #f0ede6;
+  --muted: rgba(240,237,230,0.4);
+  --hint: rgba(240,237,230,0.18);
+  --line: rgba(240,237,230,0.07);
+  --ig: #e1306c;
+  --tg: #2aabee;
+  --r: 14px;
+}
 
-        /* HEADER */
-        .header {
-            text-align: center;
-            padding: 25px 0 15px 0;
-            background: linear-gradient(180deg, #111 0%, transparent 100%);
-            border-bottom: 2px solid var(--primary-gold);
-            margin-bottom: 20px;
-            box-shadow: 0 4px 20px rgba(212, 175, 55, 0.1);
-        }
-        .header h1 {
-            margin: 0;
-            font-size: 26px;
-            font-weight: 900;
-            letter-spacing: 4px;
-            color: var(--primary-gold);
-            text-transform: uppercase;
-        }
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
-        /* PAGES */
-        .page { display: none; padding: 0 15px; animation: fadeIn 0.4s ease; }
-        .page.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Syne', sans-serif;
+  font-size: 15px;
+  min-height: 100vh;
+  overflow-x: hidden;
+  padding-bottom: 80px;
+}
 
-        /* CARDS (E'lonlar) */
-        .card {
-            background-color: var(--card-bg);
-            border: 1px solid rgba(212, 175, 55, 0.2);
-            border-radius: 16px;
-            padding: 18px;
-            margin-bottom: 15px;
-            position: relative;
-            transition: transform 0.2s;
-        }
-        .card:active { transform: scale(0.98); }
-        .card h3 { margin: 0 0 5px 0; font-size: 18px; color: var(--text-main); }
-        .card p { margin: 0 0 12px 0; font-size: 14px; color: var(--text-muted); }
-        .price-tag {
-            color: var(--primary-gold);
-            font-size: 20px;
-            font-weight: bold;
-            margin-bottom: 12px;
-        }
-        .btn-buy {
-            width: 100%;
-            padding: 12px;
-            background: transparent;
-            border: 2px solid var(--primary-gold);
-            color: var(--primary-gold);
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-        .btn-buy:active { background: var(--primary-gold); color: #000; }
+/* TOPBAR */
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px 12px;
+  border-bottom: 0.5px solid var(--line);
+  position: sticky; top: 0; z-index: 100; background: var(--bg);
+}
+.logo { font-size: 17px; font-weight: 700; letter-spacing: 3px; color: var(--gold); }
+.logo span { color: var(--text); opacity: 0.35; font-weight: 400; }
+.filter-row {
+  display: flex; gap: 6px; padding: 10px 16px 8px; overflow-x: auto;
+  scrollbar-width: none; border-bottom: 0.5px solid var(--line);
+}
+.filter-row::-webkit-scrollbar { display: none; }
+.filter-chip {
+  flex-shrink: 0; padding: 5px 14px; border-radius: 20px; font-size: 12px;
+  border: 0.5px solid var(--line); color: var(--muted); background: transparent;
+  cursor: pointer; transition: all 0.2s; font-family: 'Syne', sans-serif;
+}
+.filter-chip.on {
+  background: var(--gold-dim); border-color: var(--gold-border); color: var(--gold);
+}
 
-        /* INPUT FORMS */
-        .input-group { margin-bottom: 15px; }
-        .input-group label { display: block; margin-bottom: 6px; font-size: 13px; color: var(--primary-gold); }
-        input, textarea {
-            width: 100%;
-            padding: 14px;
-            background: var(--card-bg);
-            border: 1px solid #333;
-            color: #fff;
-            border-radius: 12px;
-            box-sizing: border-box;
-            font-size: 15px;
-            outline: none;
-        }
-        input:focus, textarea:focus { border-color: var(--primary-gold); }
-        .btn-submit {
-            width: 100%;
-            padding: 16px;
-            background: var(--primary-gold);
-            color: #000;
-            border: none;
-            border-radius: 12px;
-            font-size: 18px;
-            font-weight: bold;
-            margin-top: 10px;
-            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
-        }
+/* PAGES */
+.page { display: none; padding: 14px 14px 0; }
+.page.active { display: block; }
 
-        /* NAVIGATION BAR */
-        .nav-bar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 70px;
-            background: var(--card-bg);
-            display: flex;
-            border-top: 1px solid #333;
-            z-index: 1000;
-        }
-        .nav-item {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-muted);
-            font-size: 12px;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-        .nav-item.active-nav {
-            color: var(--primary-gold);
-            background: rgba(212, 175, 55, 0.05);
-            border-top: 3px solid var(--primary-gold);
-        }
-        .nav-icon { font-size: 22px; margin-bottom: 4px; }
+/* AD CARDS */
+.ad-card {
+  background: var(--bg2); border: 0.5px solid var(--line); border-radius: var(--r);
+  margin-bottom: 12px; overflow: hidden; transition: border-color 0.2s;
+}
+.ad-card:active { border-color: var(--gold-border); }
+.ad-card-img {
+  width: 100%; height: 190px; object-fit: cover;
+  display: block; background: var(--bg3);
+}
+.ad-card-img-placeholder {
+  width: 100%; height: 190px; background: var(--bg3);
+  display: flex; align-items: center; justify-content: center;
+}
+.ad-card-body { padding: 12px 14px 14px; }
+.ad-card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+.ad-card-title { font-size: 15px; font-weight: 500; color: var(--text); }
+.cat-badge {
+  font-size: 10px; padding: 3px 9px; border-radius: 20px; flex-shrink: 0;
+  font-family: 'DM Mono', monospace; letter-spacing: 0.04em;
+}
+.cat-badge.ig { background: rgba(225,48,108,0.12); color: #e1306c; border: 0.5px solid rgba(225,48,108,0.25); }
+.cat-badge.tg { background: rgba(42,171,238,0.12); color: #2aabee; border: 0.5px solid rgba(42,171,238,0.25); }
+.ad-price { font-size: 18px; font-weight: 700; color: var(--gold); margin-bottom: 6px; }
+.ad-desc { font-size: 12px; color: var(--muted); line-height: 1.5; margin-bottom: 12px; }
+.ad-contacts { display: flex; gap: 8px; flex-wrap: wrap; }
+.contact-btn {
+  flex: 1; padding: 9px; border-radius: 10px; font-size: 12px; font-weight: 500;
+  border: 0.5px solid; cursor: pointer; text-align: center; font-family: 'Syne', sans-serif;
+  background: transparent; transition: opacity 0.2s;
+}
+.contact-btn:active { opacity: 0.7; }
+.contact-btn.phone { border-color: var(--gold-border); color: var(--gold); }
+.contact-btn.tg-link { border-color: rgba(42,171,238,0.3); color: #2aabee; }
+.my-delete-btn {
+  width: 100%; padding: 9px; margin-top: 8px; border-radius: 10px; font-size: 12px;
+  border: 0.5px solid rgba(255,80,80,0.3); color: rgba(255,80,80,0.7);
+  background: transparent; cursor: pointer; font-family: 'Syne', sans-serif;
+}
 
-        /* PROFILE */
-        .profile-header { text-align: center; margin-bottom: 30px; }
-        .profile-avatar { width: 80px; height: 80px; background: var(--primary-gold); border-radius: 50%; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; font-size: 30px; color: #000; font-weight: bold; }
-    </style>
+/* EMPTY STATE */
+.empty-state { text-align: center; padding: 50px 20px; }
+.empty-icon { font-size: 36px; margin-bottom: 14px; opacity: 0.3; }
+.empty-text { color: var(--muted); font-size: 14px; line-height: 1.6; }
+
+/* ADD PAGE — CATEGORY SELECT */
+.cat-select-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+.cat-select-card {
+  border: 1.5px solid var(--line); border-radius: var(--r); padding: 18px 14px;
+  text-align: center; cursor: pointer; transition: all 0.2s; background: var(--bg2);
+}
+.cat-select-card.selected-ig { border-color: var(--ig); background: rgba(225,48,108,0.07); }
+.cat-select-card.selected-tg { border-color: var(--tg); background: rgba(42,171,238,0.07); }
+.cat-select-icon { font-size: 26px; margin-bottom: 8px; }
+.cat-select-name { font-size: 14px; font-weight: 500; }
+.cat-select-sub { font-size: 11px; color: var(--muted); margin-top: 3px; }
+
+/* FORM */
+.form-section { display: none; }
+.form-section.visible { display: block; }
+.field { margin-bottom: 14px; }
+.field label { display: block; font-size: 11px; color: var(--gold); letter-spacing: 0.06em; margin-bottom: 6px; font-family: 'DM Mono', monospace; }
+.field input, .field textarea {
+  width: 100%; padding: 13px 14px; background: var(--bg2); border: 0.5px solid var(--line);
+  color: var(--text); border-radius: 12px; font-size: 14px; outline: none;
+  font-family: 'Syne', sans-serif; transition: border-color 0.2s;
+}
+.field input:focus, .field textarea:focus { border-color: var(--gold-border); }
+.field input::placeholder, .field textarea::placeholder { color: var(--hint); }
+
+/* IMAGE UPLOAD */
+.upload-zone {
+  width: 100%; height: 160px; border: 1.5px dashed var(--line); border-radius: var(--r);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  cursor: pointer; transition: border-color 0.2s; background: var(--bg2); gap: 8px;
+  margin-bottom: 6px; overflow: hidden; position: relative;
+}
+.upload-zone.has-img { border-style: solid; border-color: var(--gold-border); }
+.upload-zone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.upload-icon { font-size: 28px; opacity: 0.3; }
+.upload-text { font-size: 12px; color: var(--muted); text-align: center; }
+.upload-preview { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; }
+.upload-overlay {
+  position: absolute; inset: 0; background: rgba(0,0,0,0.45);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; color: var(--gold);
+}
+
+/* SUBMIT BTN */
+.submit-btn {
+  width: 100%; padding: 16px; border-radius: 14px; font-size: 15px; font-weight: 700;
+  border: none; cursor: pointer; font-family: 'Syne', sans-serif; margin-top: 6px;
+  letter-spacing: 1px; transition: opacity 0.2s;
+}
+.submit-btn:active { opacity: 0.85; }
+.submit-btn.ig { background: var(--ig); color: #fff; }
+.submit-btn.tg { background: var(--tg); color: #fff; }
+.submit-btn.disabled { background: var(--bg3); color: var(--muted); cursor: not-allowed; }
+
+/* SECTION TITLE */
+.sec-title { font-size: 11px; color: var(--muted); letter-spacing: 0.07em; margin-bottom: 12px; font-family: 'DM Mono', monospace; }
+
+/* PROFILE */
+.profile-hero { text-align: center; padding: 20px 0 22px; }
+.profile-avatar {
+  width: 64px; height: 64px; border-radius: 50%;
+  background: var(--gold-dim); border: 1.5px solid var(--gold-border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; font-weight: 700; color: var(--gold);
+  margin: 0 auto 12px;
+}
+.profile-name { font-size: 17px; font-weight: 500; }
+.profile-id { font-size: 11px; color: var(--gold); margin-top: 4px; font-family: 'DM Mono', monospace; }
+.stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+.stat-card { background: var(--bg2); border: 0.5px solid var(--line); border-radius: 12px; padding: 14px; text-align: center; }
+.stat-num { font-size: 22px; font-weight: 700; color: var(--gold); }
+.stat-lbl { font-size: 11px; color: var(--muted); margin-top: 3px; }
+
+/* PENDING BADGE */
+.pending-overlay {
+  background: rgba(201,168,76,0.08); border: 0.5px dashed var(--gold-border);
+  border-radius: 10px; padding: 8px 12px; margin-bottom: 8px;
+  font-size: 11px; color: var(--gold); text-align: center;
+}
+
+/* NAVBAR */
+.navbar {
+  position: fixed; bottom: 0; left: 0; right: 0; height: 68px;
+  background: var(--bg2); border-top: 0.5px solid var(--line);
+  display: flex; z-index: 200;
+}
+.nav-item {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 4px; cursor: pointer; transition: opacity 0.2s;
+}
+.nav-item:active { opacity: 0.6; }
+.nav-ico { width: 22px; height: 22px; }
+.nav-lbl { font-size: 10px; color: var(--muted); font-family: 'DM Mono', monospace; }
+.nav-item.active .nav-lbl { color: var(--gold); }
+
+/* DIVIDER */
+.divider { height: 0.5px; background: var(--line); margin: 12px 0; }
+
+/* LOADING */
+.loading-wrap { text-align: center; padding: 40px 20px; }
+.loading-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--gold); animation: pulse 1.2s ease-in-out infinite; margin: 0 3px; }
+.loading-dot:nth-child(2) { animation-delay: 0.2s; }
+.loading-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes pulse { 0%,80%,100%{transform:scale(0.6);opacity:0.4} 40%{transform:scale(1);opacity:1} }
+</style>
 </head>
 <body>
 
-    <div class="header">
-        <h1>UZLEVL</h1>
+<div class="topbar">
+  <div class="logo">RQB <span>MARKET</span></div>
+  <svg class="nav-ico" viewBox="0 0 22 22" fill="none" id="search-ico" style="cursor:pointer;opacity:0.4">
+    <circle cx="9.5" cy="9.5" r="6" stroke="#c9a84c" stroke-width="1.4"/>
+    <path d="M14 14l4 4" stroke="#c9a84c" stroke-width="1.4" stroke-linecap="round"/>
+  </svg>
+</div>
+
+<!-- MARKET PAGE -->
+<div id="page-market" class="page active">
+  <div class="filter-row">
+    <button class="filter-chip on" onclick="filterAds('all',this)">Hammasi</button>
+    <button class="filter-chip" onclick="filterAds('instagram',this)">Instagram</button>
+    <button class="filter-chip" onclick="filterAds('telegram',this)">Telegram</button>
+  </div>
+  <div style="height:12px;"></div>
+  <div id="ads-feed">
+    <div class="loading-wrap">
+      <div class="loading-dot"></div>
+      <div class="loading-dot"></div>
+      <div class="loading-dot"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD PAGE -->
+<div id="page-add" class="page">
+  <div class="sec-title">E'LON TURI</div>
+  <div class="cat-select-row">
+    <div class="cat-select-card" id="cat-ig" onclick="selectCat('instagram')">
+      <div class="cat-select-icon">📸</div>
+      <div class="cat-select-name">Instagram</div>
+      <div class="cat-select-sub">Akkaunt sotish</div>
+    </div>
+    <div class="cat-select-card" id="cat-tg" onclick="selectCat('telegram')">
+      <div class="cat-select-icon">✈️</div>
+      <div class="cat-select-name">Telegram</div>
+      <div class="cat-select-sub">User/kanal sotish</div>
+    </div>
+  </div>
+
+  <!-- INSTAGRAM FORM -->
+  <div class="form-section" id="form-instagram">
+    <div class="divider"></div>
+    <div class="sec-title" style="color:var(--ig)">INSTAGRAM AKKAUNT</div>
+
+    <div class="field">
+      <label>PROFIL RASMI *</label>
+      <div class="upload-zone" id="upload-ig" onclick="document.getElementById('file-ig').click()">
+        <input type="file" id="file-ig" accept="image/*" onchange="previewImg('file-ig','upload-ig','prev-ig')">
+        <img id="prev-ig" class="upload-preview" style="display:none">
+        <div id="upload-ig-label">
+          <div class="upload-icon">📷</div>
+          <div class="upload-text">Instagram profil skrinshotini yuklang</div>
+        </div>
+        <div id="overlay-ig" class="upload-overlay" style="display:none">Rasmni o'zgartirish</div>
+      </div>
     </div>
 
-    <!-- BOZOR SAHIFASI -->
-    <div id="market" class="page active">
-        <!-- TOP ELONLAR -->
-        <div class="card">
-            <h3>@baratov.uzs</h3>
-            <p>Premium Instagram Account. Faol obunachilar bilan.</p>
-            <div class="price-tag">$5,000</div>
-            <button class="btn-buy" onclick="buyItem('Baratov.uzs accaunt')">Sotib olish</button>
-        </div>
+    <div class="field">
+      <label>INSTAGRAM USERNAME *</label>
+      <input type="text" id="ig-username" placeholder="@username (misol: @example_uz)">
+    </div>
+    <div class="field">
+      <label>NARXI *</label>
+      <input type="text" id="ig-price" placeholder="Masalan: $500 yoki 1,500,000 UZS">
+    </div>
+    <div class="field">
+      <label>QO'SHIMCHA MA'LUMOT</label>
+      <textarea id="ig-desc" rows="3" placeholder="Obunachilar soni, engagement, niche..."></textarea>
+    </div>
+    <div class="field">
+      <label>TELEFON RAQAM *</label>
+      <input type="tel" id="ig-phone" placeholder="+998 90 123 45 67">
+    </div>
+    <div class="field">
+      <label>TELEGRAM USERNAME *</label>
+      <input type="text" id="ig-tg" placeholder="@telegram_username">
+    </div>
+    <button class="submit-btn ig" onclick="submitAd('instagram')">INSTAGRAM E'LON QOLDIRISH</button>
+    <div style="height:20px;"></div>
+  </div>
 
-        <div class="card">
-            <h3>Rage Plugin Hook + Mod</h3>
-            <p>Anti-cheat aylanib o'tish kodi va BattlEye o'chirish komandalari. 100% ishlaydi.</p>
-            <div class="price-tag">350,000 UZS</div>
-            <button class="btn-buy" onclick="buyItem('Rage Plugin Mod')">Sotib olish</button>
-        </div>
+  <!-- TELEGRAM FORM -->
+  <div class="form-section" id="form-telegram">
+    <div class="divider"></div>
+    <div class="sec-title" style="color:var(--tg)">TELEGRAM USER / KANAL</div>
 
-        <div class="card">
-            <h3>Dizayn Xizmati</h3>
-            <p>Shaxsiy logotip, rasmlardagi yuzlarni tozalash va qora/tilla rangli avto-nomer dizaynlari.</p>
-            <div class="price-tag">Kelishiladi</div>
-            <button class="btn-buy" onclick="buyItem('Dizayn xizmati')">Bog'lanish</button>
+    <div class="field">
+      <label>PROFIL / KANAL RASMI *</label>
+      <div class="upload-zone" id="upload-tg" onclick="document.getElementById('file-tg').click()">
+        <input type="file" id="file-tg" accept="image/*" onchange="previewImg('file-tg','upload-tg','prev-tg')">
+        <img id="prev-tg" class="upload-preview" style="display:none">
+        <div id="upload-tg-label">
+          <div class="upload-icon">📲</div>
+          <div class="upload-text">Telegram profil/kanal skrinshotini yuklang</div>
         </div>
+        <div id="overlay-tg" class="upload-overlay" style="display:none">Rasmni o'zgartirish</div>
+      </div>
     </div>
 
-    <!-- ELON BERISH SAHIFASI -->
-    <div id="add" class="page">
-        <h2 style="text-align: center; color: var(--primary-gold);">Yangi E'lon Qo'shish</h2>
-        <div class="input-group">
-            <label>Nima sotmoqchisiz? (Masalan: @username, Xizmat turi)</label>
-            <input type="text" id="ad_title" placeholder="Mahsulot nomi">
-        </div>
-        <div class="input-group">
-            <label>Narxi (UZS yoki $)</label>
-            <input type="text" id="ad_price" placeholder="Masalan: 5000$ yoki 150000 UZS">
-        </div>
-        <div class="input-group">
-            <label>To'liq ma'lumot</label>
-            <textarea id="ad_desc" rows="4" placeholder="Mahsulot haqida, aloqa uchun raqamingiz..."></textarea>
-        </div>
-        <button class="btn-submit" onclick="submitAd()">E'lonni Joylash</button>
+    <div class="field">
+      <label>TELEGRAM USERNAME *</label>
+      <input type="text" id="tg-username" placeholder="@username yoki t.me/kanal">
     </div>
-
-    <!-- PROFIL SAHIFASI -->
-    <div id="profile" class="page">
-        <div class="profile-header">
-            <div class="profile-avatar" id="avatar_letter">U</div>
-            <h2 id="user_name" style="margin:0;">Foydalanuvchi</h2>
-            <p id="user_id" style="color: var(--primary-gold); margin-top:5px;">ID: 000000</p>
-        </div>
-        
-        <div class="card">
-            <h3>Mening ma'lumotlarim</h3>
-            <p>Platformadagi holati: <b>Tasdiqlangan Mijoz</b></p>
-            <p>Mening e'lonlarim: <b>Hozircha yo'q</b></p>
-        </div>
+    <div class="field">
+      <label>NARXI *</label>
+      <input type="text" id="tg-price" placeholder="Masalan: $200 yoki 600,000 UZS">
     </div>
-
-    <!-- NAVIGATION MENU -->
-    <div class="nav-bar">
-        <div class="nav-item active-nav" onclick="switchTab('market', this)">
-            <div class="nav-icon">🛒</div>
-            <span>Bozor</span>
-        </div>
-        <div class="nav-item" onclick="switchTab('add', this)">
-            <div class="nav-icon">➕</div>
-            <span>E'lon Qo'shish</span>
-        </div>
-        <div class="nav-item" onclick="switchTab('profile', this)">
-            <div class="nav-icon">👤</div>
-            <span>Profil</span>
-        </div>
+    <div class="field">
+      <label>QO'SHIMCHA MA'LUMOT</label>
+      <textarea id="tg-desc" rows="3" placeholder="Obunachlar soni, aktivlik, niche..."></textarea>
     </div>
+    <div class="field">
+      <label>TELEFON RAQAM *</label>
+      <input type="tel" id="tg-phone" placeholder="+998 90 123 45 67">
+    </div>
+    <div class="field">
+      <label>BOG'LANISH UCHUN TG USERNAME *</label>
+      <input type="text" id="tg-contact" placeholder="@sizning_username">
+    </div>
+    <button class="submit-btn tg" onclick="submitAd('telegram')">TELEGRAM E'LON QOLDIRISH</button>
+    <div style="height:20px;"></div>
+  </div>
+</div>
 
-    <script>
-        const tg = window.Telegram.WebApp;
-        tg.expand(); // Ekranni to'liq ochish
+<!-- PROFILE PAGE -->
+<div id="page-profile" class="page">
+  <div class="profile-hero">
+    <div class="profile-avatar" id="av-letter">U</div>
+    <div class="profile-name" id="prof-name">Foydalanuvchi</div>
+    <div class="profile-id" id="prof-id">ID: —</div>
+  </div>
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-num" id="stat-count">0</div>
+      <div class="stat-lbl">E'lonlar</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="stat-pending">0</div>
+      <div class="stat-lbl">Kutilmoqda</div>
+    </div>
+  </div>
+  <div class="sec-title">MENING E'LONLARIM</div>
+  <div id="my-ads-feed">
+    <div class="loading-wrap">
+      <div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div>
+    </div>
+  </div>
+</div>
 
-        // Foydalanuvchi ma'lumotlarini profilga yozish
-        const user = tg.initDataUnsafe?.user;
-        if (user) {
-            document.getElementById('user_name').innerText = user.first_name;
-            document.getElementById('user_id').innerText = "ID: " + user.id;
-            document.getElementById('avatar_letter').innerText = user.first_name.charAt(0).toUpperCase();
-        }
+<!-- NAVBAR -->
+<div class="navbar">
+  <div class="nav-item active" id="nav-market" onclick="switchTab('market')">
+    <svg class="nav-ico" viewBox="0 0 22 22" fill="none">
+      <rect x="3" y="3" width="7" height="7" rx="2" stroke="currentColor" stroke-width="1.3"/>
+      <rect x="12" y="3" width="7" height="7" rx="2" stroke="currentColor" stroke-width="1.3"/>
+      <rect x="3" y="12" width="7" height="7" rx="2" stroke="currentColor" stroke-width="1.3"/>
+      <rect x="12" y="12" width="7" height="7" rx="2" stroke="currentColor" stroke-width="1.3"/>
+    </svg>
+    <span class="nav-lbl">bozor</span>
+  </div>
+  <div class="nav-item" id="nav-add" onclick="switchTab('add')">
+    <svg class="nav-ico" viewBox="0 0 22 22" fill="none">
+      <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="1.3"/>
+      <path d="M11 7v8M7 11h8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+    </svg>
+    <span class="nav-lbl">e'lon</span>
+  </div>
+  <div class="nav-item" id="nav-profile" onclick="switchTab('profile')">
+    <svg class="nav-ico" viewBox="0 0 22 22" fill="none">
+      <circle cx="11" cy="8" r="3.5" stroke="currentColor" stroke-width="1.3"/>
+      <path d="M4 19c0-3.87 3.13-6 7-6s7 2.13 7 6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+    </svg>
+    <span class="nav-lbl">profil</span>
+  </div>
+</div>
 
-        // Tablarni almashtirish funksiyasi
-        function switchTab(tabId, element) {
-            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
-            
-            document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active-nav'));
-            element.classList.add('active-nav');
-        }
+<script>
+const tg = window.Telegram.WebApp;
+tg.expand();
+tg.setHeaderColor('#0a0a0a');
+tg.setBackgroundColor('#0a0a0a');
 
-        // Sotib olish tugmasi bosilganda
-        function buyItem(itemName) {
-            tg.showConfirm(`Siz ${itemName} xarid qilmoqchimisiz? Sotuvchiga xabar yuboraylikmi?`, function(agreed) {
-                if(agreed) {
-                    tg.showAlert("So'rovingiz yuborildi! Tez orada siz bilan bog'lanishadi.");
-                }
-            });
-        }
+const user = tg.initDataUnsafe?.user;
+let currentCat = null;
+let currentFilter = 'all';
 
-        // E'lonni botga yuborish
-        function submitAd() {
-            const title = document.getElementById('ad_title').value;
-            const price = document.getElementById('ad_price').value;
-            const desc = document.getElementById('ad_desc').value;
+// Uploaded file cache
+const uploadedFiles = { instagram: null, telegram: null };
 
-            if (!title || !price) {
-                tg.showAlert("Iltimos, Nomi va Narxini kiritishni unutmang!");
-                return;
-            }
+// Init profile
+if (user) {
+  document.getElementById('prof-name').textContent = user.first_name + (user.last_name ? ' ' + user.last_name : '');
+  document.getElementById('prof-id').textContent = 'ID: ' + user.id;
+  document.getElementById('av-letter').textContent = (user.first_name || 'U').charAt(0).toUpperCase();
+}
 
-            const data = {
-                action: "new_ad",
-                title: title,
-                price: price,
-                description: desc
-            };
+// NAV
+function switchTab(tab) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + tab).classList.add('active');
+  document.getElementById('nav-' + tab).classList.add('active');
+  if (tab === 'market') loadAds();
+  if (tab === 'profile') loadMyAds();
+}
 
-            // Haptic feedback (telefon titrashi)
-            tg.HapticFeedback.impactOccurred('heavy');
+// FILTER
+function filterAds(cat, el) {
+  currentFilter = cat;
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('on'));
+  el.classList.add('on');
+  loadAds();
+}
 
-            // Ma'lumotni jo'natish (Ilova avtomat yopiladi va bot e'lonni qabul qiladi)
-            tg.sendData(JSON.stringify(data));
-        }
-    </script>
+// CATEGORY SELECT
+function selectCat(cat) {
+  currentCat = cat;
+  document.getElementById('cat-ig').className = 'cat-select-card' + (cat === 'instagram' ? ' selected-ig' : '');
+  document.getElementById('cat-tg').className = 'cat-select-card' + (cat === 'telegram' ? ' selected-tg' : '');
+  document.getElementById('form-instagram').className = 'form-section' + (cat === 'instagram' ? ' visible' : '');
+  document.getElementById('form-telegram').className = 'form-section' + (cat === 'telegram' ? ' visible' : '');
+}
+
+// IMAGE PREVIEW
+function previewImg(inputId, zoneId, previewId) {
+  const file = document.getElementById(inputId).files[0];
+  if (!file) return;
+  const zone = document.getElementById(zoneId);
+  const prev = document.getElementById(previewId);
+  const labelId = inputId === 'file-ig' ? 'upload-ig-label' : 'upload-tg-label';
+  const overlayId = inputId === 'file-ig' ? 'overlay-ig' : 'overlay-tg';
+  const catKey = inputId === 'file-ig' ? 'instagram' : 'telegram';
+
+  uploadedFiles[catKey] = file;
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    prev.src = e.target.result;
+    prev.style.display = 'block';
+    document.getElementById(labelId).style.display = 'none';
+    document.getElementById(overlayId).style.display = 'flex';
+    zone.classList.add('has-img');
+  };
+  reader.readAsDataURL(file);
+}
+
+// LOAD ADS from bot (via hardcoded demo + real data from sendData responses)
+// In production, you'd call a backend API endpoint. Here we use localStorage cache.
+function loadAds() {
+  const feed = document.getElementById('ads-feed');
+  const stored = JSON.parse(localStorage.getItem('rqb_ads') || '[]');
+  const filtered = currentFilter === 'all' ? stored : stored.filter(a => a.category === currentFilter);
+
+  if (filtered.length === 0) {
+    feed.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">🛒</div>
+      <div class="empty-text">Hozircha e'lonlar yo'q.<br>Birinchi bo'ling!</div>
+    </div>`;
+    return;
+  }
+  feed.innerHTML = filtered.map(ad => renderCard(ad, false)).join('');
+}
+
+function renderCard(ad, isOwn) {
+  const catClass = ad.category === 'instagram' ? 'ig' : 'tg';
+  const catLabel = ad.category === 'instagram' ? 'Instagram' : 'Telegram';
+  const imgHtml = ad.photo_url
+    ? `<img class="ad-card-img" src="${ad.photo_url}" loading="lazy">`
+    : `<div class="ad-card-img-placeholder"><svg width="40" height="40" viewBox="0 0 40 40" fill="none"><rect width="40" height="40" rx="8" fill="#1c1c1c"/><path d="M12 28l7-9 5 6 3-4 6 7H12z" fill="#333"/><circle cx="26" cy="16" r="3" fill="#333"/></svg></div>`;
+
+  const pendingBadge = ad.status === 'pending'
+    ? `<div class="pending-overlay">⏳ Admin tekshirmoqda...</div>` : '';
+
+  const deleteBtn = isOwn
+    ? `<button class="my-delete-btn" onclick="deleteAd(${ad.id})">E'lonni o'chirish</button>` : '';
+
+  return `<div class="ad-card">
+    ${imgHtml}
+    <div class="ad-card-body">
+      ${pendingBadge}
+      <div class="ad-card-top">
+        <div class="ad-card-title">${escHtml(ad.title)}</div>
+        <span class="cat-badge ${catClass}">${catLabel}</span>
+      </div>
+      <div class="ad-price">${escHtml(ad.price)}</div>
+      ${ad.description ? `<div class="ad-desc">${escHtml(ad.description)}</div>` : ''}
+      <div class="ad-contacts">
+        ${ad.phone ? `<button class="contact-btn phone" onclick="callPhone('${escHtml(ad.phone)}')">${escHtml(ad.phone)}</button>` : ''}
+        ${ad.contact_tg ? `<button class="contact-btn tg-link" onclick="openTg('${escHtml(ad.contact_tg)}')">@${escHtml(ad.contact_tg).replace('@','')}</button>` : ''}
+      </div>
+      ${deleteBtn}
+    </div>
+  </div>`;
+}
+
+function loadMyAds() {
+  const feed = document.getElementById('my-ads-feed');
+  const uid = user ? String(user.id) : null;
+  if (!uid) { feed.innerHTML = '<div class="empty-state"><div class="empty-text">Tizimga kiring.</div></div>'; return; }
+
+  const all = JSON.parse(localStorage.getItem('rqb_ads') || '[]');
+  const mine = all.filter(a => String(a.user_id) === uid);
+  const approved = mine.filter(a => a.status === 'approved').length;
+  const pending = mine.filter(a => a.status === 'pending').length;
+
+  document.getElementById('stat-count').textContent = approved;
+  document.getElementById('stat-pending').textContent = pending;
+
+  if (mine.length === 0) {
+    feed.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">Sizda hali e'lonlar yo'q.</div></div>`;
+    return;
+  }
+  feed.innerHTML = mine.map(ad => renderCard(ad, true)).join('');
+}
+
+// SUBMIT
+async function submitAd(cat) {
+  let title, price, desc, phone, contactTg;
+
+  if (cat === 'instagram') {
+    title = document.getElementById('ig-username').value.trim();
+    price = document.getElementById('ig-price').value.trim();
+    desc = document.getElementById('ig-desc').value.trim();
+    phone = document.getElementById('ig-phone').value.trim();
+    contactTg = document.getElementById('ig-tg').value.trim().replace('@','');
+  } else {
+    title = document.getElementById('tg-username').value.trim();
+    price = document.getElementById('tg-price').value.trim();
+    desc = document.getElementById('tg-desc').value.trim();
+    phone = document.getElementById('tg-phone').value.trim();
+    contactTg = document.getElementById('tg-contact').value.trim().replace('@','');
+  }
+
+  if (!title || !price || !phone || !contactTg) {
+    tg.showAlert('Iltimos, barcha majburiy (*) maydonlarni to\'ldiring!');
+    return;
+  }
+  if (!uploadedFiles[cat]) {
+    tg.showAlert('Profil rasmini yuklang!');
+    return;
+  }
+
+  // Convert image to base64 for sending
+  const file = uploadedFiles[cat];
+  const b64 = await fileToBase64(file);
+
+  const payload = {
+    action: 'new_ad',
+    category: cat,
+    title: title,
+    price: price,
+    description: desc,
+    phone: phone,
+    contact_tg: contactTg,
+    photo_b64: b64.split(',')[1],
+    photo_mime: file.type
+  };
+
+  // Save to local cache with pending status for profile view
+  const uid = user ? user.id : 0;
+  const localAd = {
+    id: Date.now(),
+    user_id: uid,
+    category: cat,
+    title, price,
+    description: desc,
+    phone,
+    contact_tg: contactTg,
+    photo_url: b64,
+    status: 'pending'
+  };
+  const existing = JSON.parse(localStorage.getItem('rqb_ads') || '[]');
+  existing.unshift(localAd);
+  localStorage.setItem('rqb_ads', JSON.stringify(existing));
+
+  tg.HapticFeedback.impactOccurred('medium');
+  tg.sendData(JSON.stringify(payload));
+}
+
+function deleteAd(adId) {
+  tg.showConfirm("E'lonni o'chirishni xohlaysizmi?", (ok) => {
+    if (!ok) return;
+    const all = JSON.parse(localStorage.getItem('rqb_ads') || '[]');
+    const updated = all.filter(a => a.id !== adId);
+    localStorage.setItem('rqb_ads', JSON.stringify(updated));
+    tg.sendData(JSON.stringify({ action: 'delete_ad', ad_id: adId }));
+    loadMyAds();
+    tg.HapticFeedback.impactOccurred('light');
+  });
+}
+
+function callPhone(phone) {
+  tg.showAlert('Telefon: ' + phone);
+}
+function openTg(username) {
+  const u = username.replace('@','');
+  tg.openTelegramLink('https://t.me/' + u);
+}
+
+function fileToBase64(file) {
+  return new Promise((res) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result);
+    r.readAsDataURL(file);
+  });
+}
+
+function escHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Initial load
+loadAds();
+</script>
 </body>
 </html>
