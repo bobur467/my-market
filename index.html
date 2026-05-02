@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Marketplace</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body { font-family: sans-serif; margin: 0; padding: 15px; background-color: #f4f4f9; }
+        .app-container { display: flex; flex-direction: column; gap: 15px; }
+        .card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .price { color: #2ecc71; font-weight: bold; font-size: 1.2em; }
+        .btn { background: #0088cc; color: white; border: none; padding: 10px; border-radius: 8px; width: 100%; font-weight: bold; cursor: pointer; }
+        h2 { text-align: center; color: #333; }
+    </style>
+</head>
+<body>
+    <h2>Raqamli Bozor</h2>
+    <div class="app-container">
+        <div class="card">
+            <h3>Instagram @user_uzb</h3>
+            <p>10k obunachi, aktiv akkaunt.</p>
+            <p class="price">500,000 so'm</p>
+            <button class="btn" onclick="order('Insta @user_uzb')">Sotuvchi bilan bog'lanish</button>
+        </div>
+    </div>
+
+    <script>
+        let tg = window.Telegram.WebApp;
+        tg.expand(); 
+
+        function order(item) {
+            tg.sendData(item); // Botga qaysi mahsulot tanlanganini yuboradi
+            tg.close(); // Ilovani yopadi
+        }
+    </script>
+</body>
+</html>
