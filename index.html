@@ -1,497 +1,56 @@
-<!DOCTYPE html>
-<html lang="uz">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RQB Market</title>
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;500;700&display=swap');
+@dp.message(F.web_app_data)
+async def web_app_receive(message: types.Message):
+    try:
+        data = json.loads(message.web_app_data.data)
+        action = data.get("action")
 
-:root {
-  --bg: #0a0a0a;
-  --bg2: #131313;
-  --bg3: #1c1c1c;
-  --gold: #c9a84c;
-  --gold2: #e8c76a;
-  --gold-dim: rgba(201,168,76,0.12);
-  --gold-border: rgba(201,168,76,0.22);
-  --text: #f0ede6;
-  --muted: rgba(240,237,230,0.4);
-  --hint: rgba(240,237,230,0.18);
-  --line: rgba(240,237,230,0.07);
-  --ig: #e1306c;
-  --tg: #2aabee;
-  --r: 14px;
-}
+        if action == "new_ad":
+            category = data.get("category", "instagram")
+            title = data.get("title", "")
+            price = data.get("price", "")
+            desc = data.get("description", "")
+            phone = data.get("phone", "")
+            contact_tg = data.get("contact_tg", "")
 
-* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+            ad_id = db.add_ad(
+                message.from_user.id, category, title, price,
+                desc, phone, contact_tg, ""  # photo_file_id bo'sh
+            )
 
-html, body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: 'Syne', sans-serif;
-  font-size: 15px;
-  min-height: 100vh;
-  overflow-x: hidden;
-  padding-bottom: 80px;
-}
+            cat_label = "Instagram" if category == "instagram" else "Telegram"
 
-.topbar {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 14px 16px 12px;
-  border-bottom: 0.5px solid var(--line);
-  position: sticky; top: 0; z-index: 100; background: var(--bg);
-}
-.logo { font-size: 17px; font-weight: 700; letter-spacing: 3px; color: var(--gold); }
-.logo span { color: var(--text); opacity: 0.35; font-weight: 400; }
-.filter-row {
-  display: flex; gap: 6px; padding: 10px 16px 8px; overflow-x: auto;
-  scrollbar-width: none; border-bottom: 0.5px solid var(--line);
-}
-.filter-row::-webkit-scrollbar { display: none; }
-.filter-chip {
-  flex-shrink: 0; padding: 5px 14px; border-radius: 20px; font-size: 12px;
-  border: 0.5px solid var(--line); color: var(--muted); background: transparent;
-  cursor: pointer; transition: all 0.2s; font-family: 'Syne', sans-serif;
-}
-.filter-chip.on {
-  background: var(--gold-dim); border-color: var(--gold-border); color: var(--gold);
-}
+            await message.answer(
+                f"⏳ *E'loningiz yuborildi!*\n\nAdmin tekshirgandan so'ng bozorga chiqadi.\n"
+                f"E'lon ID: `{ad_id}`", parse_mode="Markdown"
+            )
 
-.page { display: none; padding: 14px 14px 0; }
-.page.active { display: block; }
+            approve_btn = InlineKeyboardMarkup(inline_keyboard=[
+                [InlineKeyboardButton(text="✅ Tasdiqlash", callback_data=f"approve_{ad_id}")],
+                [InlineKeyboardButton(text="❌ Rad etish", callback_data=f"reject_{ad_id}")]
+            ])
 
-.ad-card {
-  background: var(--bg2); border: 0.5px solid var(--line); border-radius: var(--r);
-  margin-bottom: 12px; overflow: hidden;
-}
-.ad-card-img {
-  width: 100%; height: 190px; object-fit: cover;
-  display: block; background: var(--bg3);
-}
-.ad-card-body { padding: 12px 14px 14px; }
-.ad-card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
-.ad-card-title { font-size: 15px; font-weight: 500; color: var(--text); }
-.cat-badge {
-  font-size: 10px; padding: 3px 9px; border-radius: 20px; flex-shrink: 0;
-  font-family: 'DM Mono', monospace;
-}
-.cat-badge.ig { background: rgba(225,48,108,0.12); color: #e1306c; border: 0.5px solid rgba(225,48,108,0.25); }
-.cat-badge.tg { background: rgba(42,171,238,0.12); color: #2aabee; border: 0.5px solid rgba(42,171,238,0.25); }
-.ad-price { font-size: 18px; font-weight: 700; color: var(--gold); margin-bottom: 6px; }
-.ad-desc { font-size: 12px; color: var(--muted); line-height: 1.5; margin-bottom: 12px; }
-.ad-contacts { display: flex; gap: 8px; flex-wrap: wrap; }
-.contact-btn {
-  flex: 1; padding: 9px; border-radius: 10px; font-size: 12px; font-weight: 500;
-  border: 0.5px solid; cursor: pointer; text-align: center; background: transparent;
-}
-.contact-btn.phone { border-color: var(--gold-border); color: var(--gold); }
-.contact-btn.tg-link { border-color: rgba(42,171,238,0.3); color: #2aabee; }
-.my-delete-btn {
-  width: 100%; padding: 9px; margin-top: 8px; border-radius: 10px; font-size: 12px;
-  border: 0.5px solid rgba(255,80,80,0.3); color: rgba(255,80,80,0.7);
-  background: transparent; cursor: pointer;
-}
+            admin_text = (
+                f"🔔 *YANGI E'LON — {cat_label}*\n\n"
+                f"👤 Kimdan: {message.from_user.full_name}\n"
+                f"🆔 ID: `{message.from_user.id}`\n"
+                f"📦 Sarlavha: {title}\n"
+                f"💰 Narxi: {price}\n"
+                f"📱 Telefon: {phone}\n"
+                f"📎 TG: @{contact_tg}\n"
+                f"📝 Tavsif: {desc}\n"
+                f"🏷 E'lon ID: {ad_id}"
+            )
 
-.empty-state { text-align: center; padding: 50px 20px; }
-.empty-icon { font-size: 36px; margin-bottom: 14px; opacity: 0.3; }
-.empty-text { color: var(--muted); font-size: 14px; }
+            await bot.send_message(ADMIN_ID, admin_text, reply_markup=approve_btn, parse_mode="Markdown")
 
-.cat-select-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-.cat-select-card {
-  border: 1.5px solid var(--line); border-radius: var(--r); padding: 18px 14px;
-  text-align: center; cursor: pointer; background: var(--bg2);
-}
-.cat-select-card.selected-ig { border-color: var(--ig); background: rgba(225,48,108,0.07); }
-.cat-select-card.selected-tg { border-color: var(--tg); background: rgba(42,171,238,0.07); }
-.cat-select-icon { font-size: 26px; margin-bottom: 8px; }
-.cat-select-name { font-size: 14px; font-weight: 500; }
+        elif action == "delete_ad":
+            ad_id = data.get("ad_id")
+            success = db.delete_ad(ad_id, message.from_user.id)
+            if success:
+                await message.answer("🗑 E'lon muvaffaqiyatli o'chirildi.")
+            else:
+                await message.answer("⚠️ E'lonni o'chirib bo'lmadi.")
 
-.form-section { display: none; }
-.form-section.visible { display: block; }
-.field { margin-bottom: 14px; }
-.field label { display: block; font-size: 11px; color: var(--gold); margin-bottom: 6px; font-family: 'DM Mono', monospace; }
-.field input, .field textarea {
-  width: 100%; padding: 13px 14px; background: var(--bg2); border: 0.5px solid var(--line);
-  color: var(--text); border-radius: 12px; font-size: 14px; outline: none;
-  font-family: 'Syne', sans-serif;
-}
-.field input:focus, .field textarea:focus { border-color: var(--gold-border); }
-
-.upload-zone {
-  width: 100%; height: 160px; border: 1.5px dashed var(--line); border-radius: var(--r);
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  cursor: pointer; background: var(--bg2); gap: 8px;
-  position: relative; overflow: hidden;
-}
-.upload-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-.upload-icon { font-size: 28px; opacity: 0.3; }
-.upload-text { font-size: 12px; color: var(--muted); text-align: center; }
-.upload-preview { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; }
-.upload-overlay {
-  position: absolute; inset: 0; background: rgba(0,0,0,0.45);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 11px; color: var(--gold);
-}
-
-.submit-btn {
-  width: 100%; padding: 16px; border-radius: 14px; font-size: 15px; font-weight: 700;
-  border: none; cursor: pointer; font-family: 'Syne', sans-serif; margin-top: 6px;
-}
-.submit-btn.ig { background: var(--ig); color: #fff; }
-.submit-btn.tg { background: var(--tg); color: #fff; }
-
-.sec-title { font-size: 11px; color: var(--muted); margin-bottom: 12px; font-family: 'DM Mono', monospace; }
-
-.navbar {
-  position: fixed; bottom: 0; left: 0; right: 0; height: 68px;
-  background: var(--bg2); border-top: 0.5px solid var(--line);
-  display: flex; z-index: 200;
-}
-.nav-item {
-  flex: 1; display: flex; flex-direction: column; align-items: center;
-  justify-content: center; gap: 4px; cursor: pointer;
-}
-.nav-ico { width: 22px; height: 22px; }
-.nav-lbl { font-size: 10px; color: var(--muted); font-family: 'DM Mono', monospace; }
-.nav-item.active .nav-lbl { color: var(--gold); }
-
-.divider { height: 0.5px; background: var(--line); margin: 12px 0; }
-
-.loading-wrap { text-align: center; padding: 40px 20px; }
-.loading-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--gold); animation: pulse 1.2s ease-in-out infinite; margin: 0 3px; }
-.loading-dot:nth-child(2) { animation-delay: 0.2s; }
-.loading-dot:nth-child(3) { animation-delay: 0.4s; }
-@keyframes pulse { 0%,80%,100%{transform:scale(0.6);opacity:0.4} 40%{transform:scale(1);opacity:1} }
-</style>
-</head>
-<body>
-
-<div class="topbar">
-  <div class="logo">RQB <span>MARKET</span></div>
-</div>
-
-<div id="page-market" class="page active">
-  <div class="filter-row">
-    <button class="filter-chip on" data-cat="all">Hammasi</button>
-    <button class="filter-chip" data-cat="instagram">Instagram</button>
-    <button class="filter-chip" data-cat="telegram">Telegram</button>
-  </div>
-  <div id="ads-feed"><div class="loading-wrap"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div></div></div>
-</div>
-
-<div id="page-add" class="page">
-  <div class="sec-title">E'LON TURI</div>
-  <div class="cat-select-row">
-    <div class="cat-select-card" data-cat="instagram">
-      <div class="cat-select-icon">📸</div>
-      <div class="cat-select-name">Instagram</div>
-    </div>
-    <div class="cat-select-card" data-cat="telegram">
-      <div class="cat-select-icon">✈️</div>
-      <div class="cat-select-name">Telegram</div>
-    </div>
-  </div>
-
-  <div class="form-section" id="form-instagram">
-    <div class="divider"></div>
-    <div class="field">
-      <label>PROFIL RASMI *</label>
-      <div class="upload-zone" data-cat="instagram">
-        <input type="file" accept="image/*">
-        <div class="upload-icon">📷</div>
-        <div class="upload-text">Rasm yuklang</div>
-      </div>
-    </div>
-    <div class="field"><label>USERNAME *</label><input type="text" id="ig-username" placeholder="@username"></div>
-    <div class="field"><label>NARXI *</label><input type="text" id="ig-price" placeholder="Masalan: $500"></div>
-    <div class="field"><label>MA'LUMOT</label><textarea id="ig-desc" rows="2" placeholder="Obunachilar soni..."></textarea></div>
-    <div class="field"><label>TELEFON *</label><input type="tel" id="ig-phone" placeholder="+998 90 123 45 67"></div>
-    <div class="field"><label>TELEGRAM *</label><input type="text" id="ig-tg" placeholder="@telegram_username"></div>
-    <button class="submit-btn ig" data-cat="instagram">E'LON QOLDIRISH</button>
-  </div>
-
-  <div class="form-section" id="form-telegram">
-    <div class="divider"></div>
-    <div class="field">
-      <label>PROFIL RASMI *</label>
-      <div class="upload-zone" data-cat="telegram">
-        <input type="file" accept="image/*">
-        <div class="upload-icon">📷</div>
-        <div class="upload-text">Rasm yuklang</div>
-      </div>
-    </div>
-    <div class="field"><label>USERNAME *</label><input type="text" id="tg-username" placeholder="@username"></div>
-    <div class="field"><label>NARXI *</label><input type="text" id="tg-price" placeholder="Masalan: $200"></div>
-    <div class="field"><label>MA'LUMOT</label><textarea id="tg-desc" rows="2" placeholder="Obunachilar soni..."></textarea></div>
-    <div class="field"><label>TELEFON *</label><input type="tel" id="tg-phone" placeholder="+998 90 123 45 67"></div>
-    <div class="field"><label>BOG'LANISH TG *</label><input type="text" id="tg-contact" placeholder="@username"></div>
-    <button class="submit-btn tg" data-cat="telegram">E'LON QOLDIRISH</button>
-  </div>
-</div>
-
-<div id="page-profile" class="page">
-  <div class="sec-title">PROFIL</div>
-  <div id="my-ads-feed"><div class="loading-wrap"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div></div></div>
-</div>
-
-<div class="navbar">
-  <div class="nav-item" data-page="market"><div class="nav-ico">🛒</div><span class="nav-lbl">bozor</span></div>
-  <div class="nav-item" data-page="add"><div class="nav-ico">➕</div><span class="nav-lbl">e'lon</span></div>
-  <div class="nav-item" data-page="profile"><div class="nav-ico">👤</div><span class="nav-lbl">profil</span></div>
-</div>
-
-<script>
-const tg = window.Telegram.WebApp;
-tg.expand();
-
-let currentFilter = 'all';
-let currentCat = 'instagram';
-const uploadedFiles = {};
-
-// ========== TAB SWITCH ==========
-function switchPage(page) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById(`page-${page}`).classList.add('active');
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.querySelector(`.nav-item[data-page="${page}"]`).classList.add('active');
-  if (page === 'market') loadAds();
-  if (page === 'profile') loadMyAds();
-}
-
-document.querySelectorAll('.nav-item').forEach(btn => {
-  btn.onclick = () => switchPage(btn.dataset.page);
-});
-
-// ========== CATEGORY SELECT ==========
-document.querySelectorAll('.cat-select-card').forEach(card => {
-  card.onclick = () => {
-    const cat = card.dataset.cat;
-    currentCat = cat;
-    document.querySelectorAll('.cat-select-card').forEach(c => c.classList.remove('selected-ig', 'selected-tg'));
-    card.classList.add(cat === 'instagram' ? 'selected-ig' : 'selected-tg');
-    document.getElementById('form-instagram').classList.toggle('visible', cat === 'instagram');
-    document.getElementById('form-telegram').classList.toggle('visible', cat === 'telegram');
-  };
-});
-
-// ========== IMAGE UPLOAD ==========
-document.querySelectorAll('.upload-zone').forEach(zone => {
-  const input = zone.querySelector('input[type="file"]');
-  const cat = zone.dataset.cat;
-  
-  input.onchange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    
-    uploadedFiles[cat] = file;
-    
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      zone.innerHTML = `
-        <img src="${ev.target.result}" style="width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;">
-        <div style="position:absolute;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:12px;">🔄 O'zgartirish</div>
-        <input type="file" accept="image/*" style="position:absolute;inset:0;opacity:0;cursor:pointer;">
-      `;
-      const newInput = zone.querySelector('input');
-      newInput.onchange = input.onchange;
-    };
-    reader.readAsDataURL(file);
-  };
-});
-
-// ========== FILTER ADS ==========
-document.querySelectorAll('.filter-chip').forEach(chip => {
-  chip.onclick = () => {
-    currentFilter = chip.dataset.cat;
-    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('on'));
-    chip.classList.add('on');
-    loadAds();
-  };
-});
-
-// ========== LOAD ADS ==========
-function loadAds() {
-  const feed = document.getElementById('ads-feed');
-  const all = JSON.parse(localStorage.getItem('rqb_ads') || '[]');
-  const filtered = currentFilter === 'all' ? all : all.filter(a => a.category === currentFilter);
-  
-  if (filtered.length === 0) {
-    feed.innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">E\'lonlar yo\'q</div></div>';
-    return;
-  }
-  
-  feed.innerHTML = filtered.map(ad => `
-    <div class="ad-card">
-      ${ad.photo_url ? `<img class="ad-card-img" src="${ad.photo_url}">` : '<div class="ad-card-img-placeholder">📸</div>'}
-      <div class="ad-card-body">
-        <div class="ad-card-top">
-          <div class="ad-card-title">${escapeHtml(ad.title)}</div>
-          <span class="cat-badge ${ad.category === 'instagram' ? 'ig' : 'tg'}">${ad.category === 'instagram' ? 'Instagram' : 'Telegram'}</span>
-        </div>
-        <div class="ad-price">${escapeHtml(ad.price)}</div>
-        ${ad.description ? `<div class="ad-desc">${escapeHtml(ad.description)}</div>` : ''}
-        <div class="ad-contacts">
-          <button class="contact-btn phone" onclick="tg.showAlert('${escapeHtml(ad.phone)}')">📞 ${escapeHtml(ad.phone)}</button>
-          <button class="contact-btn tg-link" onclick="tg.openTelegramLink('https://t.me/${escapeHtml(ad.contact_tg).replace('@','')}')">💬 @${escapeHtml(ad.contact_tg).replace('@','')}</button>
-        </div>
-      </div>
-    </div>
-  `).join('');
-}
-
-function loadMyAds() {
-  const feed = document.getElementById('my-ads-feed');
-  const uid = tg.initDataUnsafe?.user?.id;
-  if (!uid) { feed.innerHTML = '<div class="empty-text">Tizimga kiring</div>'; return; }
-  
-  const all = JSON.parse(localStorage.getItem('rqb_ads') || '[]');
-  const mine = all.filter(a => a.user_id === uid);
-  
-  if (mine.length === 0) {
-    feed.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">Sizda e\'lonlar yo\'q</div></div>';
-    return;
-  }
-  
-  feed.innerHTML = mine.map(ad => `
-    <div class="ad-card">
-      ${ad.photo_url ? `<img class="ad-card-img" src="${ad.photo_url}">` : ''}
-      <div class="ad-card-body">
-        <div class="ad-card-title">${escapeHtml(ad.title)}</div>
-        <div class="ad-price">${escapeHtml(ad.price)}</div>
-        ${ad.status === 'pending' ? '<div style="color:var(--gold);font-size:11px;">⏳ Tekshirilmoqda</div>' : ''}
-        <button class="my-delete-btn" onclick="deleteAd(${ad.id})">🗑 O\'chirish</button>
-      </div>
-    </div>
-  `).join('');
-}
-
-// ========== SUBMIT AD ==========
-document.querySelectorAll('.submit-btn').forEach(btn => {
-  btn.onclick = async () => {
-    const cat = btn.dataset.cat;
-    
-    let title, price, desc, phone, contactTg;
-    if (cat === 'instagram') {
-      title = document.getElementById('ig-username').value.trim();
-      price = document.getElementById('ig-price').value.trim();
-      desc = document.getElementById('ig-desc').value.trim();
-      phone = document.getElementById('ig-phone').value.trim();
-      contactTg = document.getElementById('ig-tg').value.trim().replace('@','');
-    } else {
-      title = document.getElementById('tg-username').value.trim();
-      price = document.getElementById('tg-price').value.trim();
-      desc = document.getElementById('tg-desc').value.trim();
-      phone = document.getElementById('tg-phone').value.trim();
-      contactTg = document.getElementById('tg-contact').value.trim().replace('@','');
-    }
-    
-    if (!title || !price || !phone || !contactTg) {
-      tg.showAlert('Barcha majburiy maydonlarni to\'ldiring!');
-      return;
-    }
-    
-    if (!uploadedFiles[cat]) {
-      tg.showAlert('Rasm yuklang!');
-      return;
-    }
-    
-    const file = uploadedFiles[cat];
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const b64 = ev.target.result.split(',')[1];
-      const payload = {
-        action: 'new_ad',
-        category: cat,
-        title, price, description: desc, phone,
-        contact_tg: contactTg,
-        photo_b64: b64,
-        photo_mime: file.type
-      };
-      
-      const uid = tg.initDataUnsafe?.user?.id || 0;
-      const newAd = {
-        id: Date.now(),
-        user_id: uid,
-        category: cat,
-        title, price, description: desc, phone, contact_tg: contactTg,
-        photo_url: ev.target.result,
-        status: 'pending'
-      };
-      const existing = JSON.parse(localStorage.getItem('rqb_ads') || '[]');
-      existing.unshift(newAd);
-      localStorage.setItem('rqb_ads', JSON.stringify(existing));
-      
-      tg.HapticFeedback.impactOccurred('medium');
-      tg.sendData(JSON.stringify(payload));
-      tg.showAlert('E\'lon yuborildi! Admin tekshiradi.');
-      
-      // Reset form
-      uploadedFiles[cat] = null;
-      if (cat === 'instagram') {
-        document.getElementById('ig-username').value = '';
-        document.getElementById('ig-price').value = '';
-        document.getElementById('ig-desc').value = '';
-        document.getElementById('ig-phone').value = '';
-        document.getElementById('ig-tg').value = '';
-      } else {
-        document.getElementById('tg-username').value = '';
-        document.getElementById('tg-price').value = '';
-        document.getElementById('tg-desc').value = '';
-        document.getElementById('tg-phone').value = '';
-        document.getElementById('tg-contact').value = '';
-      }
-      
-      // Reset upload zone
-      const zone = document.querySelector(`.upload-zone[data-cat="${cat}"]`);
-      zone.innerHTML = `
-        <input type="file" accept="image/*">
-        <div class="upload-icon">📷</div>
-        <div class="upload-text">Rasm yuklang</div>
-      `;
-      const newInput = zone.querySelector('input');
-      newInput.onchange = (e) => {
-        const f = e.target.files[0];
-        if (!f) return;
-        uploadedFiles[cat] = f;
-        const r = new FileReader();
-        r.onload = (ev2) => {
-          zone.innerHTML = `
-            <img src="${ev2.target.result}" style="width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;">
-            <div style="position:absolute;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:12px;">🔄 O'zgartirish</div>
-            <input type="file" accept="image/*" style="position:absolute;inset:0;opacity:0;cursor:pointer;">
-          `;
-          const inp = zone.querySelector('input');
-          inp.onchange = newInput.onchange;
-        };
-        r.readAsDataURL(f);
-      };
-    };
-    reader.readAsDataURL(file);
-  };
-});
-
-function deleteAd(adId) {
-  tg.showConfirm("O'chirilsinmi?", (ok) => {
-    if (!ok) return;
-    const all = JSON.parse(localStorage.getItem('rqb_ads') || '[]');
-    const updated = all.filter(a => a.id !== adId);
-    localStorage.setItem('rqb_ads', JSON.stringify(updated));
-    tg.sendData(JSON.stringify({ action: 'delete_ad', ad_id: adId }));
-    loadMyAds();
-    loadAds();
-  });
-}
-
-function escapeHtml(str) {
-  if (!str) return '';
-  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-
-// Initial load
-loadAds();
-document.querySelector('.cat-select-card[data-cat="instagram"]').click();
-</script>
-</body>
-</html>
+    except Exception as e:
+        logging.error(f"WebApp xatolik: {e}")
+        await message.answer("⚠️ Xatolik yuz berdi. Qayta urinib ko'ring.")
