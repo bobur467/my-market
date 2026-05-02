@@ -3,137 +3,134 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Uzlevl Marketplace</title>
+    <title>Uzlevl Market</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            --bg-color: var(--tg-theme-bg-color, #ffffff);
-            --text-color: var(--tg-theme-text-color, #222222);
-            --hint-color: var(--tg-theme-hint-color, #707579);
-            --button-color: var(--tg-theme-button-color, #3390ec);
-            --button-text: var(--tg-theme-button-text-color, #ffffff);
-            --secondary-bg: var(--tg-theme-secondary-bg-color, #f4f4f5);
+            --tg-bg: var(--tg-theme-bg-color, #ffffff);
+            --tg-text: var(--tg-theme-text-color, #000000);
+            --tg-btn: var(--tg-theme-button-color, #248b65);
+            --tg-secondary: var(--tg-theme-secondary-bg-color, #f0f0f0);
+            --tg-hint: var(--tg-theme-hint-color, #999999);
         }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 0;
-            line-height: 1.5;
-        }
-
-        .header {
-            background-color: var(--secondary-bg);
-            padding: 20px;
-            text-align: center;
-            border-bottom: 1px solid rgba(0,0,0,0.1);
-        }
-
-        .header h1 { margin: 0; font-size: 22px; color: var(--button-color); }
-        .header p { margin: 5px 0 0; color: var(--hint-color); font-size: 14px; }
-
-        .container { padding: 15px; display: grid; gap: 15px; }
-
-        .card {
-            background-color: var(--secondary-bg);
-            border-radius: 15px;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            transition: transform 0.2s;
-        }
-
-        .card:active { transform: scale(0.98); }
-
-        .card-image {
-            width: 100%;
-            height: 160px;
-            background: linear-gradient(45deg, #3390ec, #60afff);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 40px;
-            font-weight: bold;
-        }
-
-        .card-content { padding: 15px; }
-        .card-title { font-size: 18px; font-weight: bold; margin-bottom: 5px; }
-        .card-desc { font-size: 14px; color: var(--hint-color); margin-bottom: 15px; height: 40px; overflow: hidden; }
+        body { font-family: sans-serif; background-color: var(--tg-bg); color: var(--tg-text); margin: 0; padding-bottom: 70px; }
         
-        .price-tag {
-            font-size: 18px;
-            font-weight: 800;
-            color: #2ecc71;
-            margin-bottom: 12px;
-            display: block;
+        /* Sahifalarni boshqarish */
+        .page { display: none; padding: 15px; animation: fadeIn 0.3s; }
+        .active { display: block; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* Pastki menyu */
+        .nav-bar {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            height: 60px; background: var(--tg-secondary);
+            display: flex; justify-content: space-around; align-items: center;
+            border-top: 1px solid rgba(0,0,0,0.1); box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
         }
 
-        .buy-btn {
-            background-color: var(--button-color);
-            color: var(--button-text);
-            border: none;
-            padding: 12px;
-            border-radius: 10px;
-            width: 100%;
-            font-weight: bold;
-            font-size: 16px;
-            cursor: pointer;
-        }
+        .nav-item { text-align: center; color: var(--tg-hint); font-size: 12px; cursor: pointer; flex: 1; }
+        .nav-item.active-nav { color: var(--tg-btn); font-weight: bold; }
+        .nav-item i { font-size: 20px; display: block; margin-bottom: 2px; }
 
-        footer { text-align: center; padding: 20px; color: var(--hint-color); font-size: 12px; }
+        /* E'lonlar dizayni */
+        .card { background: var(--tg-secondary); border-radius: 12px; padding: 15px; margin-bottom: 15px; border-left: 4px solid var(--tg-btn); }
+        .card h3 { margin: 0 0 5px 0; font-size: 18px; }
+        .price { color: var(--tg-btn); font-weight: bold; }
+
+        /* Forma dizayni */
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-size: 14px; color: var(--tg-hint); }
+        input, textarea { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--tg-hint); background: var(--tg-bg); color: var(--tg-text); box-sizing: border-box; }
+        .submit-btn { width: 100%; padding: 12px; background: var(--tg-btn); color: white; border: none; border-radius: 8px; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div class="header">
-    <h1 id="brand-name">Uzlevl Market</h1>
-    <p>Eng ishonchli raqamli mahsulotlar</p>
-</div>
-
-<div class="container">
-    <!-- 1-Akkaunt -->
-    <div class="card">
-        <div class="card-image">INSTA</div>
-        <div class="card-content">
-            <div class="card-title">Instagram @baratov.uzs</div>
-            <div class="card-desc">Aktiv auditoriya, 5k+ obunachi. SMM uchun ideal.</div>
-            <span class="price-tag">850,000 so'm</span>
-            <button class="buy-btn" onclick="sendOrder('Instagram: @baratov.uzs')">Sotib olish</button>
-        </div>
-    </div>
-
-    <!-- 2-Akkaunt -->
-    <div class="card">
-        <div class="card-image" style="background: linear-gradient(45deg, #f1c40f, #f39c12);">GOLD</div>
-        <div class="card-content">
-            <div class="card-title">Premium Username</div>
-            <div class="card-desc">Noyob va qisqa telegram usernamelar to'plami.</div>
-            <span class="price-tag">1,200,000 so'm</span>
-            <button class="buy-btn" onclick="sendOrder('Premium Username')">Sotib olish</button>
+<!-- 1. BOZOR SAHIFASI -->
+<div id="market" class="page active">
+    <h2 style="color: var(--tg-btn);">Barcha e'lonlar</h2>
+    <div id="ads-container">
+        <div class="card">
+            <h3>@baratov.uzs</h3>
+            <p>Aktiv obunachilar, 10k.</p>
+            <span class="price">850,000 UZS</span>
         </div>
     </div>
 </div>
 
-<footer>
-    Xavfsiz to'lov va kafolatlangan xizmat
-</footer>
+<!-- 2. E'LON BERISH SAHIFASI -->
+<div id="add-post" class="page">
+    <h2>Yangi e'lon berish</h2>
+    <div class="form-group">
+        <label>Username yoki mahsulot nomi</label>
+        <input type="text" id="p_title" placeholder="@username">
+    </div>
+    <div class="form-group">
+        <label>Narxi (UZS)</label>
+        <input type="number" id="p_price" placeholder="Narxni yozing">
+    </div>
+    <div class="form-group">
+        <label>Tavsif</label>
+        <textarea id="p_desc" rows="4" placeholder="Mahsulot haqida ma'lumot..."></textarea>
+    </div>
+    <button class="submit-btn" onclick="postAd()">E'lonni joylash</button>
+</div>
+
+<!-- 3. PROFIL SAHIFASI -->
+<div id="profile" class="page">
+    <h2>Mening profilim</h2>
+    <div class="card" style="text-align: center;">
+        <div id="user-photo" style="width: 80px; height: 80px; background: #ddd; border-radius: 50%; margin: 0 auto 10px;"></div>
+        <h3 id="user-name">Foydalanuvchi</h3>
+        <p id="user-id" style="color: var(--tg-hint);"></p>
+    </div>
+</div>
+
+<!-- PASTI NAVIGATSIYA -->
+<div class="nav-bar">
+    <div class="nav-item active-nav" onclick="showPage('market', this)"><span>🛒 Bozor</span></div>
+    <div class="nav-item" onclick="showPage('add-post', this)"><span>➕ E'lon</span></div>
+    <div class="nav-item" onclick="showPage('profile', this)"><span>👤 Profil</span></div>
+</div>
 
 <script>
-    const tg = window.Telegram.WebApp;
+    let tg = window.Telegram.WebApp;
     tg.expand();
-    tg.ready();
 
-    // Telegram mavzusiga qarab ranglarni yangilash
-    document.body.style.backgroundColor = tg.backgroundColor;
+    // Sahifani almashtirish funksiyasi
+    function showPage(pageId, element) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById(pageId).classList.add('active');
 
-    function sendOrder(itemName) {
-        // Telegram botga ma'lumot yuborish
-        tg.sendData(itemName);
-        // Ilovani yopish
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active-nav'));
+        element.classList.add('active-nav');
+    }
+
+    // Profil ma'lumotlarini yuklash
+    document.getElementById('user-name').innerText = tg.initDataUnsafe.user.first_name;
+    document.getElementById('user-id').innerText = "ID: " + tg.initDataUnsafe.user.id;
+
+    // E'lon berish funksiyasi
+    function postAd() {
+        const title = document.getElementById('p_title').value;
+        const price = document.getElementById('p_price').value;
+        const desc = document.getElementById('p_desc').value;
+
+        if(!title || !price) {
+            alert("Iltimos, hamma maydonlarni to'ldiring!");
+            return;
+        }
+
+        const adData = {
+            action: "new_ad",
+            title: title,
+            price: price,
+            description: desc
+        };
+
+        tg.sendData(JSON.stringify(adData)); // Botga ma'lumotni JSON ko'rinishida yuboradi
         tg.close();
     }
 </script>
