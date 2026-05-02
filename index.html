@@ -6,97 +6,278 @@
     <title>Uzlevl Market</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
+        /* UZLEVL PREMIUM THEME: Black & Gold */
         :root {
-            --bg: var(--tg-theme-bg-color, #ffffff);
-            --text: var(--tg-theme-text-color, #000000);
-            --accent: #d4af37; /* Uzlevl Gold */
-            --btn: var(--tg-theme-button-color, #248b65);
-            --sec: var(--tg-theme-secondary-bg-color, #f5f5f5);
+            --bg-color: #0d0d0d;
+            --card-bg: #1a1a1a;
+            --primary-gold: #D4AF37;
+            --text-main: #ffffff;
+            --text-muted: #888888;
         }
-        body { font-family: 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 80px; transition: 0.3s; }
-        .page { display: none; padding: 20px; }
-        .active { display: block; animation: slideUp 0.3s ease; }
-        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        
-        .header { text-align: center; padding: 20px 0; border-bottom: 2px solid var(--accent); margin-bottom: 15px; }
-        .header h1 { margin: 0; font-size: 22px; letter-spacing: 2px; color: var(--accent); }
 
-        .card { background: var(--sec); border-radius: 15px; padding: 15px; margin-bottom: 15px; border: 1px solid rgba(0,0,0,0.05); }
-        .price { color: var(--btn); font-weight: bold; font-size: 18px; }
-        
-        .nav { position: fixed; bottom: 0; width: 100%; height: 65px; background: var(--sec); display: flex; border-top: 1px solid rgba(0,0,0,0.1); }
-        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 11px; cursor: pointer; opacity: 0.6; }
-        .nav-item.active-nav { opacity: 1; color: var(--accent); border-top: 3px solid var(--accent); }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            padding-bottom: 90px;
+            overflow-x: hidden;
+        }
 
-        input, textarea { width: 100%; padding: 12px; margin: 10px 0; border-radius: 10px; border: 1px solid #ddd; background: var(--bg); color: var(--text); box-sizing: border-box; }
-        .main-btn { width: 100%; padding: 15px; background: var(--accent); color: #000; border: none; border-radius: 12px; font-weight: bold; font-size: 16px; margin-top: 10px; }
+        /* HEADER */
+        .header {
+            text-align: center;
+            padding: 25px 0 15px 0;
+            background: linear-gradient(180deg, #111 0%, transparent 100%);
+            border-bottom: 2px solid var(--primary-gold);
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(212, 175, 55, 0.1);
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 26px;
+            font-weight: 900;
+            letter-spacing: 4px;
+            color: var(--primary-gold);
+            text-transform: uppercase;
+        }
+
+        /* PAGES */
+        .page { display: none; padding: 0 15px; animation: fadeIn 0.4s ease; }
+        .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* CARDS (E'lonlar) */
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: 16px;
+            padding: 18px;
+            margin-bottom: 15px;
+            position: relative;
+            transition: transform 0.2s;
+        }
+        .card:active { transform: scale(0.98); }
+        .card h3 { margin: 0 0 5px 0; font-size: 18px; color: var(--text-main); }
+        .card p { margin: 0 0 12px 0; font-size: 14px; color: var(--text-muted); }
+        .price-tag {
+            color: var(--primary-gold);
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 12px;
+        }
+        .btn-buy {
+            width: 100%;
+            padding: 12px;
+            background: transparent;
+            border: 2px solid var(--primary-gold);
+            color: var(--primary-gold);
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn-buy:active { background: var(--primary-gold); color: #000; }
+
+        /* INPUT FORMS */
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; margin-bottom: 6px; font-size: 13px; color: var(--primary-gold); }
+        input, textarea {
+            width: 100%;
+            padding: 14px;
+            background: var(--card-bg);
+            border: 1px solid #333;
+            color: #fff;
+            border-radius: 12px;
+            box-sizing: border-box;
+            font-size: 15px;
+            outline: none;
+        }
+        input:focus, textarea:focus { border-color: var(--primary-gold); }
+        .btn-submit {
+            width: 100%;
+            padding: 16px;
+            background: var(--primary-gold);
+            color: #000;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 10px;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+        }
+
+        /* NAVIGATION BAR */
+        .nav-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 70px;
+            background: var(--card-bg);
+            display: flex;
+            border-top: 1px solid #333;
+            z-index: 1000;
+        }
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            font-size: 12px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .nav-item.active-nav {
+            color: var(--primary-gold);
+            background: rgba(212, 175, 55, 0.05);
+            border-top: 3px solid var(--primary-gold);
+        }
+        .nav-icon { font-size: 22px; margin-bottom: 4px; }
+
+        /* PROFILE */
+        .profile-header { text-align: center; margin-bottom: 30px; }
+        .profile-avatar { width: 80px; height: 80px; background: var(--primary-gold); border-radius: 50%; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; font-size: 30px; color: #000; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div id="market" class="page active">
-    <div class="header"><h1>UZLEVL MARKET</h1></div>
-    <div class="card">
-        <h3>@baratov.uzs</h3>
-        <p>Instagram premium account</p>
-        <div class="price">850,000 UZS</div>
-        <button class="main-btn" style="background: var(--btn); color: #fff;" onclick="buy('baratov.uzs')">Sotib olish</button>
+    <div class="header">
+        <h1>UZLEVL</h1>
     </div>
-</div>
 
-<div id="add" class="page">
-    <h2>Yangi e'lon</h2>
-    <input type="text" id="t" placeholder="Nomi (masalan: @username)">
-    <input type="number" id="p" placeholder="Narxi (UZS)">
-    <textarea id="d" rows="5" placeholder="Tavsif va aloqa ma'lumotlari..."></textarea>
-    <button class="main-btn" onclick="send()">E'lonni yuborish</button>
-</div>
+    <!-- BOZOR SAHIFASI -->
+    <div id="market" class="page active">
+        <!-- TOP ELONLAR -->
+        <div class="card">
+            <h3>@baratov.uzs</h3>
+            <p>Premium Instagram Account. Faol obunachilar bilan.</p>
+            <div class="price-tag">$5,000</div>
+            <button class="btn-buy" onclick="buyItem('Baratov.uzs accaunt')">Sotib olish</button>
+        </div>
 
-<div id="profile" class="page">
-    <h2>Profilim</h2>
-    <div class="card" style="text-align:center">
-        <h3 id="un">Yuklanmoqda...</h3>
-        <p id="ui"></p>
-        <hr>
-        <p>Mening e'lonlarim: 0</p>
+        <div class="card">
+            <h3>Rage Plugin Hook + Mod</h3>
+            <p>Anti-cheat aylanib o'tish kodi va BattlEye o'chirish komandalari. 100% ishlaydi.</p>
+            <div class="price-tag">350,000 UZS</div>
+            <button class="btn-buy" onclick="buyItem('Rage Plugin Mod')">Sotib olish</button>
+        </div>
+
+        <div class="card">
+            <h3>Dizayn Xizmati</h3>
+            <p>Shaxsiy logotip, rasmlardagi yuzlarni tozalash va qora/tilla rangli avto-nomer dizaynlari.</p>
+            <div class="price-tag">Kelishiladi</div>
+            <button class="btn-buy" onclick="buyItem('Dizayn xizmati')">Bog'lanish</button>
+        </div>
     </div>
-</div>
 
-<div class="nav">
-    <div class="nav-item active-nav" onclick="tab('market', this)"><span>🛒 Bozor</span></div>
-    <div class="nav-item" onclick="tab('add', this)"><span>➕ E'lon</span></div>
-    <div class="nav-item" onclick="tab('profile', this)"><span>👤 Profil</span></div>
-</div>
+    <!-- ELON BERISH SAHIFASI -->
+    <div id="add" class="page">
+        <h2 style="text-align: center; color: var(--primary-gold);">Yangi E'lon Qo'shish</h2>
+        <div class="input-group">
+            <label>Nima sotmoqchisiz? (Masalan: @username, Xizmat turi)</label>
+            <input type="text" id="ad_title" placeholder="Mahsulot nomi">
+        </div>
+        <div class="input-group">
+            <label>Narxi (UZS yoki $)</label>
+            <input type="text" id="ad_price" placeholder="Masalan: 5000$ yoki 150000 UZS">
+        </div>
+        <div class="input-group">
+            <label>To'liq ma'lumot</label>
+            <textarea id="ad_desc" rows="4" placeholder="Mahsulot haqida, aloqa uchun raqamingiz..."></textarea>
+        </div>
+        <button class="btn-submit" onclick="submitAd()">E'lonni Joylash</button>
+    </div>
 
-<script>
-    let tg = window.Telegram.WebApp;
-    tg.expand();
-    document.getElementById('un').innerText = tg.initDataUnsafe.user.first_name;
-    document.getElementById('ui').innerText = "ID: " + tg.initDataUnsafe.user.id;
-
-    function tab(id, el) {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active-nav'));
-        el.classList.add('active-nav');
-    }
-
-    function send() {
-        let t = document.getElementById('t').value;
-        let p = document.getElementById('p').value;
-        let d = document.getElementById('d').value;
-        if(!t || !p) return tg.showAlert("Ma'lumotlarni to'ldiring!");
+    <!-- PROFIL SAHIFASI -->
+    <div id="profile" class="page">
+        <div class="profile-header">
+            <div class="profile-avatar" id="avatar_letter">U</div>
+            <h2 id="user_name" style="margin:0;">Foydalanuvchi</h2>
+            <p id="user_id" style="color: var(--primary-gold); margin-top:5px;">ID: 000000</p>
+        </div>
         
-        tg.showConfirm("E'lonni tasdiqlash uchun yuborasizmi?", (ok) => {
-            if(ok) {
-                tg.sendData(JSON.stringify({action:"new_ad", title:t, price:p, description:d}));
-            }
-        });
-    }
+        <div class="card">
+            <h3>Mening ma'lumotlarim</h3>
+            <p>Platformadagi holati: <b>Tasdiqlangan Mijoz</b></p>
+            <p>Mening e'lonlarim: <b>Hozircha yo'q</b></p>
+        </div>
+    </div>
 
-    function buy(item) {
-        tg.showAlert(item + " bo'yicha so'rovingiz qabul qilindi. Tez orada sotuvchi aloqaga chiqadi.");
-    }
-</script>
+    <!-- NAVIGATION MENU -->
+    <div class="nav-bar">
+        <div class="nav-item active-nav" onclick="switchTab('market', this)">
+            <div class="nav-icon">🛒</div>
+            <span>Bozor</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('add', this)">
+            <div class="nav-icon">➕</div>
+            <span>E'lon Qo'shish</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('profile', this)">
+            <div class="nav-icon">👤</div>
+            <span>Profil</span>
+        </div>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand(); // Ekranni to'liq ochish
+
+        // Foydalanuvchi ma'lumotlarini profilga yozish
+        const user = tg.initDataUnsafe?.user;
+        if (user) {
+            document.getElementById('user_name').innerText = user.first_name;
+            document.getElementById('user_id').innerText = "ID: " + user.id;
+            document.getElementById('avatar_letter').innerText = user.first_name.charAt(0).toUpperCase();
+        }
+
+        // Tablarni almashtirish funksiyasi
+        function switchTab(tabId, element) {
+            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            
+            document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active-nav'));
+            element.classList.add('active-nav');
+        }
+
+        // Sotib olish tugmasi bosilganda
+        function buyItem(itemName) {
+            tg.showConfirm(`Siz ${itemName} xarid qilmoqchimisiz? Sotuvchiga xabar yuboraylikmi?`, function(agreed) {
+                if(agreed) {
+                    tg.showAlert("So'rovingiz yuborildi! Tez orada siz bilan bog'lanishadi.");
+                }
+            });
+        }
+
+        // E'lonni botga yuborish
+        function submitAd() {
+            const title = document.getElementById('ad_title').value;
+            const price = document.getElementById('ad_price').value;
+            const desc = document.getElementById('ad_desc').value;
+
+            if (!title || !price) {
+                tg.showAlert("Iltimos, Nomi va Narxini kiritishni unutmang!");
+                return;
+            }
+
+            const data = {
+                action: "new_ad",
+                title: title,
+                price: price,
+                description: desc
+            };
+
+            // Haptic feedback (telefon titrashi)
+            tg.HapticFeedback.impactOccurred('heavy');
+
+            // Ma'lumotni jo'natish (Ilova avtomat yopiladi va bot e'lonni qabul qiladi)
+            tg.sendData(JSON.stringify(data));
+        }
+    </script>
 </body>
 </html>
