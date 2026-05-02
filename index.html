@@ -7,133 +7,96 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            --tg-bg: var(--tg-theme-bg-color, #ffffff);
-            --tg-text: var(--tg-theme-text-color, #000000);
-            --tg-btn: var(--tg-theme-button-color, #248b65);
-            --tg-secondary: var(--tg-theme-secondary-bg-color, #f0f0f0);
-            --tg-hint: var(--tg-theme-hint-color, #999999);
+            --bg: var(--tg-theme-bg-color, #ffffff);
+            --text: var(--tg-theme-text-color, #000000);
+            --accent: #d4af37; /* Uzlevl Gold */
+            --btn: var(--tg-theme-button-color, #248b65);
+            --sec: var(--tg-theme-secondary-bg-color, #f5f5f5);
         }
-
-        body { font-family: sans-serif; background-color: var(--tg-bg); color: var(--tg-text); margin: 0; padding-bottom: 70px; }
+        body { font-family: 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 80px; transition: 0.3s; }
+        .page { display: none; padding: 20px; }
+        .active { display: block; animation: slideUp 0.3s ease; }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         
-        /* Sahifalarni boshqarish */
-        .page { display: none; padding: 15px; animation: fadeIn 0.3s; }
-        .active { display: block; }
+        .header { text-align: center; padding: 20px 0; border-bottom: 2px solid var(--accent); margin-bottom: 15px; }
+        .header h1 { margin: 0; font-size: 22px; letter-spacing: 2px; color: var(--accent); }
 
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .card { background: var(--sec); border-radius: 15px; padding: 15px; margin-bottom: 15px; border: 1px solid rgba(0,0,0,0.05); }
+        .price { color: var(--btn); font-weight: bold; font-size: 18px; }
+        
+        .nav { position: fixed; bottom: 0; width: 100%; height: 65px; background: var(--sec); display: flex; border-top: 1px solid rgba(0,0,0,0.1); }
+        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 11px; cursor: pointer; opacity: 0.6; }
+        .nav-item.active-nav { opacity: 1; color: var(--accent); border-top: 3px solid var(--accent); }
 
-        /* Pastki menyu */
-        .nav-bar {
-            position: fixed; bottom: 0; left: 0; right: 0;
-            height: 60px; background: var(--tg-secondary);
-            display: flex; justify-content: space-around; align-items: center;
-            border-top: 1px solid rgba(0,0,0,0.1); box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
-        }
-
-        .nav-item { text-align: center; color: var(--tg-hint); font-size: 12px; cursor: pointer; flex: 1; }
-        .nav-item.active-nav { color: var(--tg-btn); font-weight: bold; }
-        .nav-item i { font-size: 20px; display: block; margin-bottom: 2px; }
-
-        /* E'lonlar dizayni */
-        .card { background: var(--tg-secondary); border-radius: 12px; padding: 15px; margin-bottom: 15px; border-left: 4px solid var(--tg-btn); }
-        .card h3 { margin: 0 0 5px 0; font-size: 18px; }
-        .price { color: var(--tg-btn); font-weight: bold; }
-
-        /* Forma dizayni */
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-size: 14px; color: var(--tg-hint); }
-        input, textarea { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--tg-hint); background: var(--tg-bg); color: var(--tg-text); box-sizing: border-box; }
-        .submit-btn { width: 100%; padding: 12px; background: var(--tg-btn); color: white; border: none; border-radius: 8px; font-weight: bold; }
+        input, textarea { width: 100%; padding: 12px; margin: 10px 0; border-radius: 10px; border: 1px solid #ddd; background: var(--bg); color: var(--text); box-sizing: border-box; }
+        .main-btn { width: 100%; padding: 15px; background: var(--accent); color: #000; border: none; border-radius: 12px; font-weight: bold; font-size: 16px; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-<!-- 1. BOZOR SAHIFASI -->
 <div id="market" class="page active">
-    <h2 style="color: var(--tg-btn);">Barcha e'lonlar</h2>
-    <div id="ads-container">
-        <div class="card">
-            <h3>@baratov.uzs</h3>
-            <p>Aktiv obunachilar, 10k.</p>
-            <span class="price">850,000 UZS</span>
-        </div>
+    <div class="header"><h1>UZLEVL MARKET</h1></div>
+    <div class="card">
+        <h3>@baratov.uzs</h3>
+        <p>Instagram premium account</p>
+        <div class="price">850,000 UZS</div>
+        <button class="main-btn" style="background: var(--btn); color: #fff;" onclick="buy('baratov.uzs')">Sotib olish</button>
     </div>
 </div>
 
-<!-- 2. E'LON BERISH SAHIFASI -->
-<div id="add-post" class="page">
-    <h2>Yangi e'lon berish</h2>
-    <div class="form-group">
-        <label>Username yoki mahsulot nomi</label>
-        <input type="text" id="p_title" placeholder="@username">
-    </div>
-    <div class="form-group">
-        <label>Narxi (UZS)</label>
-        <input type="number" id="p_price" placeholder="Narxni yozing">
-    </div>
-    <div class="form-group">
-        <label>Tavsif</label>
-        <textarea id="p_desc" rows="4" placeholder="Mahsulot haqida ma'lumot..."></textarea>
-    </div>
-    <button class="submit-btn" onclick="postAd()">E'lonni joylash</button>
+<div id="add" class="page">
+    <h2>Yangi e'lon</h2>
+    <input type="text" id="t" placeholder="Nomi (masalan: @username)">
+    <input type="number" id="p" placeholder="Narxi (UZS)">
+    <textarea id="d" rows="5" placeholder="Tavsif va aloqa ma'lumotlari..."></textarea>
+    <button class="main-btn" onclick="send()">E'lonni yuborish</button>
 </div>
 
-<!-- 3. PROFIL SAHIFASI -->
 <div id="profile" class="page">
-    <h2>Mening profilim</h2>
-    <div class="card" style="text-align: center;">
-        <div id="user-photo" style="width: 80px; height: 80px; background: #ddd; border-radius: 50%; margin: 0 auto 10px;"></div>
-        <h3 id="user-name">Foydalanuvchi</h3>
-        <p id="user-id" style="color: var(--tg-hint);"></p>
+    <h2>Profilim</h2>
+    <div class="card" style="text-align:center">
+        <h3 id="un">Yuklanmoqda...</h3>
+        <p id="ui"></p>
+        <hr>
+        <p>Mening e'lonlarim: 0</p>
     </div>
 </div>
 
-<!-- PASTI NAVIGATSIYA -->
-<div class="nav-bar">
-    <div class="nav-item active-nav" onclick="showPage('market', this)"><span>🛒 Bozor</span></div>
-    <div class="nav-item" onclick="showPage('add-post', this)"><span>➕ E'lon</span></div>
-    <div class="nav-item" onclick="showPage('profile', this)"><span>👤 Profil</span></div>
+<div class="nav">
+    <div class="nav-item active-nav" onclick="tab('market', this)"><span>🛒 Bozor</span></div>
+    <div class="nav-item" onclick="tab('add', this)"><span>➕ E'lon</span></div>
+    <div class="nav-item" onclick="tab('profile', this)"><span>👤 Profil</span></div>
 </div>
 
 <script>
     let tg = window.Telegram.WebApp;
     tg.expand();
+    document.getElementById('un').innerText = tg.initDataUnsafe.user.first_name;
+    document.getElementById('ui').innerText = "ID: " + tg.initDataUnsafe.user.id;
 
-    // Sahifani almashtirish funksiyasi
-    function showPage(pageId, element) {
+    function tab(id, el) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.getElementById(pageId).classList.add('active');
-
+        document.getElementById(id).classList.add('active');
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active-nav'));
-        element.classList.add('active-nav');
+        el.classList.add('active-nav');
     }
 
-    // Profil ma'lumotlarini yuklash
-    document.getElementById('user-name').innerText = tg.initDataUnsafe.user.first_name;
-    document.getElementById('user-id').innerText = "ID: " + tg.initDataUnsafe.user.id;
+    function send() {
+        let t = document.getElementById('t').value;
+        let p = document.getElementById('p').value;
+        let d = document.getElementById('d').value;
+        if(!t || !p) return tg.showAlert("Ma'lumotlarni to'ldiring!");
+        
+        tg.showConfirm("E'lonni tasdiqlash uchun yuborasizmi?", (ok) => {
+            if(ok) {
+                tg.sendData(JSON.stringify({action:"new_ad", title:t, price:p, description:d}));
+            }
+        });
+    }
 
-    // E'lon berish funksiyasi
-    function postAd() {
-        const title = document.getElementById('p_title').value;
-        const price = document.getElementById('p_price').value;
-        const desc = document.getElementById('p_desc').value;
-
-        if(!title || !price) {
-            alert("Iltimos, hamma maydonlarni to'ldiring!");
-            return;
-        }
-
-        const adData = {
-            action: "new_ad",
-            title: title,
-            price: price,
-            description: desc
-        };
-
-        tg.sendData(JSON.stringify(adData)); // Botga ma'lumotni JSON ko'rinishida yuboradi
-        tg.close();
+    function buy(item) {
+        tg.showAlert(item + " bo'yicha so'rovingiz qabul qilindi. Tez orada sotuvchi aloqaga chiqadi.");
     }
 </script>
-
 </body>
 </html>
