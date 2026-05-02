@@ -28,11 +28,13 @@ button { background: #c9a84c; color: #0a0a0a; padding: 14px; border: none; borde
 .card-price { font-size: 20px; font-weight: bold; color: #c9a84c; margin: 8px 0; }
 .status-badge { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 10px; margin-top: 8px; }
 .status-pending { background: #ffaa0020; color: #ffaa00; }
-#image-upload-container { border: 2px dashed #2a2a2a; border-radius: 12px; padding: 20px; text-align: center; cursor: pointer; }
-#image-preview { display: none; width: 100%; border-radius: 8px; margin-top: 10px; border: 1px solid #c9a84c; }
 .filter-bar { display: flex; gap: 10px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 4px; }
-.filter-btn { padding: 8px 20px; background: #141414; border: 1px solid #2a2a2a; border-radius: 30px; font-size: 13px; color: #888; white-space: nowrap; }
+.filter-btn { padding: 8px 20px; background: #141414; border: 1px solid #2a2a2a; border-radius: 30px; font-size: 13px; color: #888; white-space: nowrap; cursor: pointer; }
 .filter-btn.active { background: #c9a84c; color: #0a0a0a; }
+#image-upload-container { border: 2px dashed #2a2a2a; border-radius: 12px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.2s; }
+#image-upload-container.has-image { border-color: #c9a84c; border-style: solid; }
+#image-preview { width: 100%; border-radius: 12px; margin-top: 10px; display: none; }
+#upload-placeholder { transition: all 0.2s; }
 </style>
 </head>
 <body>
@@ -64,9 +66,9 @@ button { background: #c9a84c; color: #0a0a0a; padding: 14px; border: none; borde
     <div class="form-group">
         <label>📸 Akkaunt skrinshoti *</label>
         <div id="image-upload-container" onclick="document.getElementById('photo-input').click()">
-            <input type="file" id="photo-input" accept="image/*" style="display: none;" onchange="previewImage(this)">
+            <input type="file" id="photo-input" accept="image/*" style="display: none;">
             <div id="upload-placeholder">
-                <span style="font-size: 24px;">🖼️</span>
+                <span style="font-size: 32px;">🖼️</span>
                 <p style="font-size: 12px; color: #888; margin-top: 5px;">Rasm tanlash uchun bosing</p>
             </div>
             <img id="image-preview" src="">
@@ -92,7 +94,7 @@ button { background: #c9a84c; color: #0a0a0a; padding: 14px; border: none; borde
         <label>💬 Telegram username *</label>
         <input type="text" id="contact_tg" placeholder="@username">
     </div>
-    <button id="submit-ad-btn" onclick="submitAd()">🚀 E'lon qoldirish</button>
+    <button id="submit-ad-btn">🚀 E'lon qoldirish</button>
     <div style="height: 20px;"></div>
 </div>
 
@@ -114,43 +116,79 @@ button { background: #c9a84c; color: #0a0a0a; padding: 14px; border: none; borde
 </div>
 
 <script>
+// Telegram WebApp
 const tg = window.Telegram.WebApp;
 tg.expand();
 
+// Global variables
 let selectedPhotoBase64 = null;
 let currentFilter = 'all';
 
-// Rasm tanlash va preview qilish
-function previewImage(input) {
-    const file = input.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const preview = document.getElementById('image-preview');
-            const placeholder = document.getElementById('upload-placeholder');
-            preview.src = e.target.result;
-            preview.style.display = 'block';
-            placeholder.style.display = 'none';
-            selectedPhotoBase64 = e.target.result;
-        }
-        reader.readAsDataURL(file);
-    }
-}
+// ============ RASM PREVIEW ============
+const photoInput = document.getElementById('photo-input');
+const uploadContainer = document.getElementById('image-upload-container');
+const uploadPlaceholder = document.getElementById('upload-placeholder');
+const imagePreview = document.getElementById('image-preview');
 
-// E'lonni yuborish
-function submitAd() {
+photoInput.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+        selectedPhotoBase64 = evt.target.result;
+        imagePreview.src = selectedPhotoBase64;
+        imagePreview.style.display = 'block';
+        uploadPlaceholder.style.display = 'none';
+        uploadContainer.classList.add('has-image');
+        
+        // Test qilish uchun console.log
+        console.log('✅ Rasm yuklandi, length:', selectedPhotoBase64.length);
+    };
+    reader.readAsDataURL(file);
+});
+
+// ============ E'LON QOLDIRISH ============
+async function submitAd() {
     const category = document.getElementById('category').value;
     const title = document.getElementById('username').value.trim();
     const price = document.getElementById('price').value.trim();
     const description = document.getElementById('description').value.trim();
     const phone = document.getElementById('phone').value.trim();
-    const contact_tg = document.getElementById('contact_tg').value.trim().replace('@', '');
+    let contact_tg = document.getElementById('contact_tg').value.trim();
     
-    if (!title || !price || !phone || !contact_tg || !selectedPhotoBase64) {
-        tg.showAlert('❌ Iltimos, barcha majburiy maydonlarni to\'ldiring va rasm yuklang!');
+    // Username dan @ ni tozalash
+    contact_tg = contact_tg.replace('@', '');
+    
+    // Tekshirish
+    if (!title) {
+        tg.showAlert('❌ Username ni kiriting!');
         return;
     }
-
+    if (!price) {
+        tg.showAlert('❌ Narxni kiriting!');
+        return;
+    }
+    if (!phone) {
+        tg.showAlert('❌ Telefon raqamni kiriting!');
+        return;
+    }
+    if (!contact_tg) {
+        tg.showAlert('❌ Telegram username ni kiriting!');
+        return;
+    }
+    if (!selectedPhotoBase64) {
+        tg.showAlert('❌ Iltimos, rasm yuklang!');
+        return;
+    }
+    
+    // Base64 dan "data:image/..." qismini olib tashlash (faqat base64 string)
+    let base64String = selectedPhotoBase64;
+    if (base64String.includes(',')) {
+        base64String = base64String.split(',')[1];
+    }
+    
+    const user = tg.initDataUnsafe?.user;
     const adData = {
         action: 'new_ad',
         category: category,
@@ -159,22 +197,48 @@ function submitAd() {
         description: description,
         phone: phone,
         contact_tg: contact_tg,
-        photo_b64: selectedPhotoBase64
+        photo_b64: base64String,
+        photo_mime: 'image/jpeg'
     };
-
-    // LocalStorage uchun saqlash (ko'rinib turishi uchun)
+    
+    // LocalStorage ga saqlash (faqat ko'rinish uchun)
     const ads = JSON.parse(localStorage.getItem('rqb_ads') || '[]');
-    ads.unshift({...adData, id: Date.now(), status: 'pending', user_id: tg.initDataUnsafe?.user?.id});
+    ads.unshift({
+        id: Date.now(),
+        user_id: user?.id || 0,
+        category: category,
+        title: title,
+        price: price,
+        description: description,
+        status: 'pending'
+    });
     localStorage.setItem('rqb_ads', JSON.stringify(ads));
-
+    
+    console.log('📤 Yuborilmoqda:', adData);
+    
     // Botga yuborish
     tg.sendData(JSON.stringify(adData));
     
-    tg.showAlert('✅ E\'loningiz yuborildi! Admin tekshiruvidan so\'ng kanalda chiqadi.');
+    tg.showAlert('✅ E\'loningiz yuborildi!\nAdmin tekshirgandan so\'ng chiqariladi.');
+    
+    // Formani tozalash
+    document.getElementById('username').value = '';
+    document.getElementById('price').value = '';
+    document.getElementById('description').value = '';
+    document.getElementById('phone').value = '';
+    document.getElementById('contact_tg').value = '';
+    selectedPhotoBase64 = null;
+    imagePreview.style.display = 'none';
+    uploadPlaceholder.style.display = 'flex';
+    uploadContainer.classList.remove('has-image');
+    
+    // Bozor sahifasiga o'tish
     switchPage('market');
+    renderMarket();
+    renderProfile();
 }
 
-// Sahifalarni almashtirish
+// ============ SAHIFALARNI ALMASHTIRISH ============
 function switchPage(page) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.getElementById(`${page}-page`).classList.add('active');
@@ -185,65 +249,88 @@ function switchPage(page) {
     if (page === 'profile') renderProfile();
 }
 
-// Marketni render qilish
+// ============ BOZORNI RENDER QILISH ============
 function renderMarket() {
     const ads = JSON.parse(localStorage.getItem('rqb_ads') || '[]');
+    const approved = ads.filter(ad => ad.status === 'approved');
+    const filtered = currentFilter === 'all' ? approved : approved.filter(ad => ad.category === currentFilter);
     const container = document.getElementById('ads-list');
-    const filtered = ads.filter(ad => ad.status === 'approved' && (currentFilter === 'all' || ad.category === currentFilter));
     
     if (filtered.length === 0) {
-        container.innerHTML = '<div style="text-align:center; padding:40px; color:#666;">Hozircha e\'lonlar yo\'q</div>';
+        container.innerHTML = '<div style="text-align:center; padding:40px; color:#666;">📭 Hozircha e\'lonlar yo\'q</div>';
         return;
     }
-
+    
     container.innerHTML = filtered.map(ad => `
         <div class="card">
-            <span class="category-badge ${ad.category}">${ad.category.toUpperCase()}</span>
-            <div style="font-weight:bold;">${ad.title}</div>
-            <div class="card-price">💰 ${ad.price}</div>
-            <div style="font-size:12px; color:#888;">${ad.description}</div>
+            <span class="category-badge ${ad.category}">${ad.category === 'instagram' ? '📸 Instagram' : '✈️ Telegram'}</span>
+            <div style="font-weight:bold;">${escapeHtml(ad.title)}</div>
+            <div class="card-price">💰 ${escapeHtml(ad.price)}</div>
+            ${ad.description ? `<div style="font-size:12px; color:#888;">📝 ${escapeHtml(ad.description)}</div>` : ''}
         </div>
     `).join('');
 }
 
-// Profilni render qilish
+// ============ PROFILNI RENDER QILISH ============
 function renderProfile() {
     const ads = JSON.parse(localStorage.getItem('rqb_ads') || '[]');
-    const myId = tg.initDataUnsafe?.user?.id;
-    const myAds = ads.filter(ad => ad.user_id === myId);
+    const user = tg.initDataUnsafe?.user;
+    const myAds = ads.filter(ad => ad.user_id === (user?.id || 0));
     const container = document.getElementById('my-ads-list');
-
+    
+    if (myAds.length === 0) {
+        container.innerHTML = '<div style="text-align:center; padding:40px; color:#666;">📋 Sizda e\'lonlar yo\'q</div>';
+        return;
+    }
+    
     container.innerHTML = myAds.map(ad => `
         <div class="card">
-            <span class="category-badge ${ad.category}">${ad.category}</span>
-            <div>${ad.title}</div>
-            <div class="status-badge status-pending">⏳ Kutilmoqda</div>
+            <span class="category-badge ${ad.category}">${ad.category === 'instagram' ? '📸 Instagram' : '✈️ Telegram'}</span>
+            <div style="font-weight:bold;">${escapeHtml(ad.title)}</div>
+            <div class="card-price">💰 ${escapeHtml(ad.price)}</div>
+            <div class="status-badge status-pending">⏳ ${ad.status === 'pending' ? 'Admin tekshirmoqda' : ad.status}</div>
         </div>
     `).join('');
 }
 
-// Tab hodisalari
-document.querySelectorAll('.tab').forEach(tab => {
-    tab.onclick = () => switchPage(tab.dataset.page);
-});
+// ============ HTML ESCAPE ============
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
 
-// Filter hodisalari
+// ============ FILTER ============
 document.querySelectorAll('.filter-btn').forEach(btn => {
-    btn.onclick = () => {
+    btn.addEventListener('click', () => {
         document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         currentFilter = btn.dataset.filter;
         renderMarket();
-    };
+    });
 });
 
-// Profil ma'lumotlarini yuklash
+// ============ TABLAR ============
+document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => switchPage(tab.dataset.page));
+});
+
+// ============ E'LON QOLDIRISH TUGMASI ============
+document.getElementById('submit-ad-btn').addEventListener('click', submitAd);
+
+// ============ PROFIL MA'LUMOTLARI ============
 if (tg.initDataUnsafe?.user) {
-    document.getElementById('profile-name').textContent = tg.initDataUnsafe.user.first_name;
-    document.getElementById('profile-id').textContent = 'ID: ' + tg.initDataUnsafe.user.id;
+    const user = tg.initDataUnsafe.user;
+    document.getElementById('profile-name').textContent = user.first_name || 'Foydalanuvchi';
+    document.getElementById('profile-id').textContent = 'ID: ' + user.id;
 }
 
+// ============ BOSHLASH ============
 renderMarket();
+
+// Telegram ready
+tg.ready();
+
+console.log('🚀 RQB MARKET ishga tushdi!');
 </script>
 </body>
 </html>
