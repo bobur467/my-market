@@ -6,397 +6,33 @@
 <title>RQB Market</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    background: #0a0a0a;
-    color: #f0ede6;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    padding-bottom: 70px;
-}
-
-.header {
-    background: #0a0a0a;
-    padding: 16px;
-    text-align: center;
-    border-bottom: 1px solid #1f1f1f;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-}
-
-.header h1 {
-    color: #c9a84c;
-    font-size: 22px;
-    letter-spacing: 2px;
-}
-
-.header p {
-    font-size: 11px;
-    color: #666;
-    margin-top: 4px;
-}
-
-.tabs {
-    display: flex;
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: #0f0f0f;
-    border-top: 1px solid #1f1f1f;
-    z-index: 100;
-}
-
-.tab {
-    flex: 1;
-    padding: 12px;
-    text-align: center;
-    cursor: pointer;
-    background: none;
-    border: none;
-    color: #666;
-    font-size: 13px;
-    font-weight: 500;
-    transition: all 0.2s;
-}
-
-.tab.active {
-    color: #c9a84c;
-    background: #1a1a1a;
-}
-
-.page {
-    display: none;
-    padding: 16px;
-    min-height: 100vh;
-}
-
-.page.active {
-    display: block;
-}
-
-.filter-bar {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-    overflow-x: auto;
-    padding-bottom: 4px;
-}
-
-.filter-btn {
-    padding: 8px 20px;
-    background: #141414;
-    border: 1px solid #2a2a2a;
-    border-radius: 30px;
-    font-size: 13px;
-    cursor: pointer;
-    color: #888;
-    white-space: nowrap;
-    transition: all 0.2s;
-}
-
-.filter-btn.active {
-    background: #c9a84c;
-    color: #0a0a0a;
-    border-color: #c9a84c;
-}
-
-.form-group {
-    margin-bottom: 16px;
-}
-
-label {
-    display: block;
-    margin-bottom: 6px;
-    font-size: 12px;
-    color: #c9a84c;
-    font-weight: 500;
-}
-
-input, textarea, select {
-    width: 100%;
-    padding: 14px;
-    background: #141414;
-    border: 1px solid #2a2a2a;
-    border-radius: 12px;
-    color: #f0ede6;
-    font-size: 14px;
-    outline: none;
-    transition: border 0.2s;
-}
-
-input:focus, textarea:focus, select:focus {
-    border-color: #c9a84c;
-}
-
-textarea {
-    resize: none;
-    font-family: inherit;
-}
-
-button {
-    background: #c9a84c;
-    color: #0a0a0a;
-    padding: 14px;
-    border: none;
-    border-radius: 12px;
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-    width: 100%;
-    transition: opacity 0.2s;
-}
-
-button:active {
-    opacity: 0.8;
-}
-
-.card {
-    background: #111111;
-    border-radius: 16px;
-    padding: 16px;
-    margin-bottom: 12px;
-    border: 1px solid #1f1f1f;
-    transition: all 0.2s;
-}
-
-.card:active {
-    transform: scale(0.99);
-}
-
-.card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-}
-
-.category-badge {
-    display: inline-block;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 10px;
-    font-weight: bold;
-}
-
-.category-badge.instagram {
-    background: #e1306c20;
-    color: #e1306c;
-    border: 1px solid #e1306c30;
-}
-
-.category-badge.telegram {
-    background: #2aabee20;
-    color: #2aabee;
-    border: 1px solid #2aabee30;
-}
-
-.card-title {
-    font-size: 16px;
-    font-weight: bold;
-    margin-bottom: 4px;
-}
-
-.card-price {
-    font-size: 20px;
-    font-weight: bold;
-    color: #c9a84c;
-    margin: 8px 0;
-}
-
-.card-desc {
-    font-size: 13px;
-    color: #888;
-    line-height: 1.4;
-    margin: 8px 0;
-}
-
-.card-actions {
-    display: flex;
-    gap: 8px;
-    margin: 12px 0 8px;
-}
-
-.card-actions button {
-    padding: 10px;
-    font-size: 12px;
-    background: #1a1a1a;
-    color: #f0ede6;
-    border: 1px solid #333;
-}
-
-.card-actions button:active {
-    background: #2a2a2a;
-}
-
-.contact-buttons {
-    display: flex;
-    gap: 8px;
-    margin-top: 12px;
-}
-
-.contact-btn {
-    flex: 1;
-    padding: 10px;
-    font-size: 13px;
-    background: #1a1a1a;
-    color: #f0ede6;
-    border: 1px solid #333;
-}
-
-.contact-btn.phone {
-    border-color: #c9a84c50;
-    color: #c9a84c;
-}
-
-.contact-btn.tg {
-    border-color: #2aabee50;
-    color: #2aabee;
-}
-
-.delete-btn {
-    background: #ff444420 !important;
-    color: #ff6666 !important;
-    border-color: #ff444450 !important;
-    margin-top: 8px;
-}
-
-.status-badge {
-    display: inline-block;
-    padding: 4px 10px;
-    border-radius: 12px;
-    font-size: 10px;
-    margin-bottom: 8px;
-}
-
-.status-pending {
-    background: #ffaa0020;
-    color: #ffaa00;
-}
-
-.status-approved {
-    background: #00ff8820;
-    color: #00ff88;
-}
-
-.empty-state {
-    text-align: center;
-    padding: 60px 20px;
-    color: #666;
-}
-
-.empty-icon {
-    font-size: 48px;
-    margin-bottom: 16px;
-    opacity: 0.5;
-}
-
-.rating-stars {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin: 8px 0;
-}
-
-.stars {
-    color: #ffc107;
-    font-size: 14px;
-    letter-spacing: 2px;
-}
-
-.rating-count {
-    font-size: 11px;
-    color: #888;
-}
-
-.rate-btn {
-    background: #ffc10720 !important;
-    color: #ffc107 !important;
-    border: 1px solid #ffc10740 !important;
-    padding: 6px 12px !important;
-    font-size: 11px !important;
-    width: auto !important;
-}
-
-.save-btn {
-    background: #c9a84c20 !important;
-    color: #c9a84c !important;
-    border: 1px solid #c9a84c40 !important;
-    width: auto !important;
-    padding: 6px 12px !important;
-    font-size: 11px !important;
-}
-
-.report-btn {
-    background: #ff444420 !important;
-    color: #ff8888 !important;
-    border: 1px solid #ff444440 !important;
-    width: auto !important;
-    padding: 6px 12px !important;
-    font-size: 11px !important;
-}
-
-.flex-row {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    align-items: center;
-}
-
-.toast {
-    position: fixed;
-    bottom: 80px;
-    left: 20px;
-    right: 20px;
-    background: #1a1a1a;
-    color: #c9a84c;
-    text-align: center;
-    padding: 12px;
-    border-radius: 12px;
-    font-size: 13px;
-    z-index: 200;
-    animation: fadeInUp 0.3s ease;
-    border: 1px solid #c9a84c30;
-}
-
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.loading {
-    text-align: center;
-    padding: 60px 20px;
-}
-
-.loading-dot {
-    display: inline-block;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: #c9a84c;
-    margin: 0 3px;
-    animation: pulse 1.2s ease-in-out infinite;
-}
-
-.loading-dot:nth-child(2) { animation-delay: 0.2s; }
-.loading-dot:nth-child(3) { animation-delay: 0.4s; }
-
-@keyframes pulse {
-    0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
-    40% { transform: scale(1); opacity: 1; }
-}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #0a0a0a; color: #f0ede6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding-bottom: 70px; }
+.header { background: #0a0a0a; padding: 16px; text-align: center; border-bottom: 1px solid #1f1f1f; position: sticky; top: 0; z-index: 100; }
+.header h1 { color: #c9a84c; font-size: 22px; letter-spacing: 2px; }
+.header p { font-size: 11px; color: #666; margin-top: 4px; }
+.tabs { display: flex; position: fixed; bottom: 0; left: 0; right: 0; background: #0f0f0f; border-top: 1px solid #1f1f1f; z-index: 100; }
+.tab { flex: 1; padding: 12px; text-align: center; cursor: pointer; background: none; border: none; color: #666; font-size: 13px; font-weight: 500; transition: all 0.2s; }
+.tab.active { color: #c9a84c; background: #1a1a1a; }
+.page { display: none; padding: 16px; min-height: 100vh; }
+.page.active { display: block; }
+.form-group { margin-bottom: 16px; }
+label { display: block; margin-bottom: 6px; font-size: 12px; color: #c9a84c; font-weight: 500; }
+input, textarea, select { width: 100%; padding: 14px; background: #141414; border: 1px solid #2a2a2a; border-radius: 12px; color: #f0ede6; font-size: 14px; outline: none; }
+input:focus, textarea:focus, select:focus { border-color: #c9a84c; }
+button { background: #c9a84c; color: #0a0a0a; padding: 14px; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%; }
+.card { background: #111111; border-radius: 16px; padding: 16px; margin-bottom: 12px; border: 1px solid #1f1f1f; }
+.category-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 10px; font-weight: bold; margin-bottom: 8px; }
+.category-badge.instagram { background: #e1306c20; color: #e1306c; border: 1px solid #e1306c30; }
+.category-badge.telegram { background: #2aabee20; color: #2aabee; border: 1px solid #2aabee30; }
+.card-price { font-size: 20px; font-weight: bold; color: #c9a84c; margin: 8px 0; }
+.status-badge { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 10px; margin-top: 8px; }
+.status-pending { background: #ffaa0020; color: #ffaa00; }
+#image-upload-container { border: 2px dashed #2a2a2a; border-radius: 12px; padding: 20px; text-align: center; cursor: pointer; }
+#image-preview { display: none; width: 100%; border-radius: 8px; margin-top: 10px; border: 1px solid #c9a84c; }
+.filter-bar { display: flex; gap: 10px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 4px; }
+.filter-btn { padding: 8px 20px; background: #141414; border: 1px solid #2a2a2a; border-radius: 30px; font-size: 13px; color: #888; white-space: nowrap; }
+.filter-btn.active { background: #c9a84c; color: #0a0a0a; }
 </style>
 </head>
 <body>
@@ -406,6 +42,7 @@ button:active {
     <p>Instagram | Telegram akkauntlar savdosi</p>
 </div>
 
+<!-- BOZOR SAHIFASI -->
 <div id="market-page" class="page active">
     <div class="filter-bar">
         <button class="filter-btn active" data-filter="all">🏠 Hammasi</button>
@@ -415,6 +52,7 @@ button:active {
     <div id="ads-list"></div>
 </div>
 
+<!-- E'LON QO'SHISH SAHIFASI -->
 <div id="add-page" class="page">
     <div class="form-group">
         <label>📂 Kategoriya</label>
@@ -424,16 +62,27 @@ button:active {
         </select>
     </div>
     <div class="form-group">
+        <label>📸 Akkaunt skrinshoti *</label>
+        <div id="image-upload-container" onclick="document.getElementById('photo-input').click()">
+            <input type="file" id="photo-input" accept="image/*" style="display: none;" onchange="previewImage(this)">
+            <div id="upload-placeholder">
+                <span style="font-size: 24px;">🖼️</span>
+                <p style="font-size: 12px; color: #888; margin-top: 5px;">Rasm tanlash uchun bosing</p>
+            </div>
+            <img id="image-preview" src="">
+        </div>
+    </div>
+    <div class="form-group">
         <label>👤 Username *</label>
         <input type="text" id="username" placeholder="Masalan: @example_uz">
     </div>
     <div class="form-group">
         <label>💰 Narxi *</label>
-        <input type="text" id="price" placeholder="Masalan: $500 yoki 1,500,000 UZS">
+        <input type="text" id="price" placeholder="Masalan: $500">
     </div>
     <div class="form-group">
         <label>📝 Tavsif</label>
-        <textarea id="description" rows="3" placeholder="Obunachilar soni, engagement, niche..."></textarea>
+        <textarea id="description" rows="3" placeholder="Obunachilar soni, niche..."></textarea>
     </div>
     <div class="form-group">
         <label>📞 Telefon raqam *</label>
@@ -443,29 +92,21 @@ button:active {
         <label>💬 Telegram username *</label>
         <input type="text" id="contact_tg" placeholder="@username">
     </div>
-    <button id="submit-ad-btn">🚀 E'lon qoldirish</button>
+    <button id="submit-ad-btn" onclick="submitAd()">🚀 E'lon qoldirish</button>
     <div style="height: 20px;"></div>
 </div>
 
+<!-- PROFIL SAHIFASI -->
 <div id="profile-page" class="page">
-    <div style="margin-bottom: 20px; text-align: center;">
+    <div style="text-align: center; margin-bottom: 20px;">
         <div style="font-size: 48px;">👤</div>
-        <div id="profile-name" style="font-size: 18px; font-weight: bold; margin-top: 8px;">Foydalanuvchi</div>
+        <div id="profile-name" style="font-size: 18px; font-weight: bold;">Foydalanuvchi</div>
         <div id="profile-id" style="font-size: 11px; color: #888;"></div>
-    </div>
-    <div class="flex-row" style="justify-content: center; gap: 16px; margin-bottom: 24px;">
-        <div style="text-align: center;">
-            <div id="my-ads-count" style="font-size: 24px; color: #c9a84c;">0</div>
-            <div style="font-size: 11px; color: #888;">E'lonlar</div>
-        </div>
-        <div style="text-align: center;">
-            <div id="my-pending-count" style="font-size: 24px; color: #ffaa00;">0</div>
-            <div style="font-size: 11px; color: #888;">Kutilmoqda</div>
-        </div>
     </div>
     <div id="my-ads-list"></div>
 </div>
 
+<!-- NAVIGATION -->
 <div class="tabs">
     <button class="tab active" data-page="market">🏠 Bozor</button>
     <button class="tab" data-page="add">➕ E'lon berish</button>
@@ -475,163 +116,28 @@ button:active {
 <script>
 const tg = window.Telegram.WebApp;
 tg.expand();
-tg.setHeaderColor('#0a0a0a');
-tg.setBackgroundColor('#0a0a0a');
 
-const user = tg.initDataUnsafe?.user;
+let selectedPhotoBase64 = null;
 let currentFilter = 'all';
-let currentUserId = user?.id || null;
-let currentUsername = user?.username || null;
-let currentFullName = user?.first_name || 'Foydalanuvchi';
 
-// Profil ma'lumotlari
-if (user) {
-    document.getElementById('profile-name').textContent = currentFullName;
-    document.getElementById('profile-id').textContent = `ID: ${user.id}`;
-}
-
-// ============ LOCALSTORAGE FUNKSIYALARI ============
-function getAds() {
-    return JSON.parse(localStorage.getItem('rqb_ads') || '[]');
-}
-
-function saveAds(ads) {
-    localStorage.setItem('rqb_ads', JSON.stringify(ads));
-}
-
-function getRatings() {
-    return JSON.parse(localStorage.getItem('rqb_ratings') || '[]');
-}
-
-function saveRatings(ratings) {
-    localStorage.setItem('rqb_ratings', JSON.stringify(ratings));
-}
-
-function getWishlist() {
-    return JSON.parse(localStorage.getItem('rqb_wishlist') || '[]');
-}
-
-function saveWishlist(wishlist) {
-    localStorage.setItem('rqb_wishlist', JSON.stringify(wishlist));
-}
-
-// ============ REYTING FUNKSIYASI ============
-function getSellerRating(sellerId) {
-    const ratings = getRatings();
-    const sellerRatings = ratings.filter(r => r.seller_id === sellerId);
-    if (sellerRatings.length === 0) return { avg: 0, total: 0 };
-    const sum = sellerRatings.reduce((a, b) => a + b.rating, 0);
-    return { avg: (sum / sellerRatings.length).toFixed(1), total: sellerRatings.length };
-}
-
-function renderStars(rating) {
-    const full = Math.floor(rating);
-    const half = rating % 1 >= 0.5;
-    let stars = '';
-    for (let i = 1; i <= 5; i++) {
-        if (i <= full) stars += '★';
-        else if (half && i === full + 1) stars += '½';
-        else stars += '☆';
+// Rasm tanlash va preview qilish
+function previewImage(input) {
+    const file = input.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.getElementById('image-preview');
+            const placeholder = document.getElementById('upload-placeholder');
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+            placeholder.style.display = 'none';
+            selectedPhotoBase64 = e.target.result;
+        }
+        reader.readAsDataURL(file);
     }
-    return stars;
 }
 
-// ============ KARTALARNI KO'RSATISH ============
-function renderAdCard(ad, isOwn = false) {
-    const rating = getSellerRating(ad.user_id);
-    const isSaved = getWishlist().some(w => w.ad_id === ad.id && w.user_id === currentUserId);
-    
-    let statusHtml = '';
-    if (ad.status === 'pending') {
-        statusHtml = '<div class="status-badge status-pending">⏳ Admin tekshirmoqda</div>';
-    }
-    
-    let editDeleteHtml = '';
-    if (isOwn && ad.status === 'pending') {
-        editDeleteHtml = `
-            <button class="delete-btn" onclick="deleteAd(${ad.id})">🗑 O'chirish</button>
-        `;
-    }
-    
-    const stars = renderStars(rating.avg);
-    
-    return `
-        <div class="card">
-            <div class="card-header">
-                <span class="category-badge ${ad.category}">${ad.category === 'instagram' ? '📸 Instagram' : '✈️ Telegram'}</span>
-                <div class="flex-row" style="gap: 6px;">
-                    ${!isOwn ? `<button class="save-btn" onclick="toggleWishlist(${ad.id})">${isSaved ? '❤️' : '🤍'}</button>` : ''}
-                    ${!isOwn ? `<button class="report-btn" onclick="reportAd(${ad.id})">⚠️</button>` : ''}
-                </div>
-            </div>
-            <div class="card-title">${escapeHtml(ad.title)}</div>
-            ${!isOwn ? `
-                <div class="rating-stars">
-                    <div class="stars">${stars}</div>
-                    <div class="rating-count">(${rating.total})</div>
-                    <button class="rate-btn" onclick="rateSeller(${ad.user_id}, ${ad.id})">⭐ Baholash</button>
-                </div>
-            ` : ''}
-            <div class="card-price">💰 ${escapeHtml(ad.price)}</div>
-            ${ad.description ? `<div class="card-desc">📝 ${escapeHtml(ad.description)}</div>` : ''}
-            ${statusHtml}
-            <div class="contact-buttons">
-                <button class="contact-btn phone" onclick="callPhone('${escapeHtml(ad.phone)}')">📞 Telefon</button>
-                <button class="contact-btn tg" onclick="openTg('${escapeHtml(ad.contact_tg)}')">💬 Telegram</button>
-            </div>
-            ${editDeleteHtml}
-        </div>
-    `;
-}
-
-// ============ BOZOR SAHIFASI ============
-function renderMarket() {
-    const ads = getAds();
-    const approved = ads.filter(ad => ad.status === 'approved');
-    const filtered = currentFilter === 'all' ? approved : approved.filter(ad => ad.category === currentFilter);
-    const container = document.getElementById('ads-list');
-    
-    if (filtered.length === 0) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <div class="empty-icon">📭</div>
-                <div>Hozircha e'lonlar yo'q</div>
-                <div style="font-size: 12px; margin-top: 8px;">Birinchi bo'lib e'lon qoldiring!</div>
-            </div>
-        `;
-        return;
-    }
-    
-    container.innerHTML = filtered.map(ad => renderAdCard(ad, false)).join('');
-}
-
-// ============ PROFIL SAHIFASI ============
-function renderProfile() {
-    const ads = getAds();
-    const myAds = ads.filter(ad => ad.user_id === currentUserId);
-    const approved = myAds.filter(ad => ad.status === 'approved').length;
-    const pending = myAds.filter(ad => ad.status === 'pending').length;
-    
-    document.getElementById('my-ads-count').textContent = approved;
-    document.getElementById('my-pending-count').textContent = pending;
-    
-    const container = document.getElementById('my-ads-list');
-    
-    if (myAds.length === 0) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <div class="empty-icon">📋</div>
-                <div>Sizda e'lonlar yo'q</div>
-                <div style="font-size: 12px; margin-top: 8px;">"E'lon berish" bo'limiga o'ting</div>
-            </div>
-        `;
-        return;
-    }
-    
-    container.innerHTML = myAds.map(ad => renderAdCard(ad, true)).join('');
-}
-
-// ============ E'LON QOLDIRISH ============
+// E'lonni yuborish
 function submitAd() {
     const category = document.getElementById('category').value;
     const title = document.getElementById('username').value.trim();
@@ -640,162 +146,38 @@ function submitAd() {
     const phone = document.getElementById('phone').value.trim();
     const contact_tg = document.getElementById('contact_tg').value.trim().replace('@', '');
     
-    if (!title || !price || !phone || !contact_tg) {
-        tg.showAlert('❌ Barcha majburiy maydonlarni to\'ldiring!');
+    if (!title || !price || !phone || !contact_tg || !selectedPhotoBase64) {
+        tg.showAlert('❌ Iltimos, barcha majburiy maydonlarni to\'ldiring va rasm yuklang!');
         return;
     }
-    
-    const newAd = {
-        id: Date.now(),
-        user_id: currentUserId,
-        user_name: currentFullName,
-        category: category,
-        title: title,
-        price: price,
-        description: description,
-        phone: phone,
-        contact_tg: contact_tg,
-        status: 'pending',
-        created_at: new Date().toISOString()
-    };
-    
-    const ads = getAds();
-    ads.unshift(newAd);
-    saveAds(ads);
-    
-    // Botga yuborish
-    tg.sendData(JSON.stringify({
+
+    const adData = {
         action: 'new_ad',
         category: category,
         title: title,
         price: price,
         description: description,
         phone: phone,
-        contact_tg: contact_tg
-    }));
+        contact_tg: contact_tg,
+        photo_b64: selectedPhotoBase64
+    };
+
+    // LocalStorage uchun saqlash (ko'rinib turishi uchun)
+    const ads = JSON.parse(localStorage.getItem('rqb_ads') || '[]');
+    ads.unshift({...adData, id: Date.now(), status: 'pending', user_id: tg.initDataUnsafe?.user?.id});
+    localStorage.setItem('rqb_ads', JSON.stringify(ads));
+
+    // Botga yuborish
+    tg.sendData(JSON.stringify(adData));
     
-    tg.showAlert('✅ E\'lon yuborildi! Admin tekshirgandan so\'ng chiqariladi.');
-    
-    document.getElementById('username').value = '';
-    document.getElementById('price').value = '';
-    document.getElementById('description').value = '';
-    document.getElementById('phone').value = '';
-    document.getElementById('contact_tg').value = '';
-    
-    renderMarket();
-    renderProfile();
+    tg.showAlert('✅ E\'loningiz yuborildi! Admin tekshiruvidan so\'ng kanalda chiqadi.');
     switchPage('market');
 }
 
-// ============ E'LON O'CHIRISH ============
-function deleteAd(adId) {
-    tg.showConfirm("⚠️ E'lonni o'chirishni xohlaysizmi?", (ok) => {
-        if (!ok) return;
-        
-        const ads = getAds();
-        const updated = ads.filter(ad => ad.id !== adId);
-        saveAds(updated);
-        
-        tg.sendData(JSON.stringify({ action: 'delete_ad', ad_id: adId }));
-        
-        renderMarket();
-        renderProfile();
-        tg.showAlert('🗑 E\'lon o\'chirildi');
-    });
-}
-
-// ============ WISHLIST ============
-function toggleWishlist(adId) {
-    let wishlist = getWishlist();
-    const exists = wishlist.some(w => w.ad_id === adId && w.user_id === currentUserId);
-    
-    if (exists) {
-        wishlist = wishlist.filter(w => !(w.ad_id === adId && w.user_id === currentUserId));
-        tg.showAlert('⭐ Wishlistdan olib tashlandi');
-    } else {
-        wishlist.push({ user_id: currentUserId, ad_id: adId, saved_at: new Date().toISOString() });
-        tg.showAlert('⭐ Wishlistga saqlandi');
-    }
-    
-    saveWishlist(wishlist);
-    renderMarket();
-}
-
-// ============ REYTING BERISH ============
-function rateSeller(sellerId, adId) {
-    tg.showPopup({
-        title: '⭐ Sotuvchini baholang',
-        message: '1 dan 5 gacha baho bering',
-        buttons: [
-            { id: '1', text: '⭐ 1 - Yomon' },
-            { id: '2', text: '⭐⭐ 2 - Qoniqarsiz' },
-            { id: '3', text: '⭐⭐⭐ 3 - O\'rtacha' },
-            { id: '4', text: '⭐⭐⭐⭐ 4 - Yaxshi' },
-            { id: '5', text: '⭐⭐⭐⭐⭐ 5 - Ajoyib' },
-            { id: 'cancel', text: 'Bekor qilish' }
-        ]
-    }, (buttonId) => {
-        if (buttonId === 'cancel') return;
-        
-        const rating = parseInt(buttonId);
-        const ratings = getRatings();
-        
-        // Oldin baholaganmi tekshirish
-        const alreadyRated = ratings.some(r => r.seller_id === sellerId && r.buyer_id === currentUserId);
-        if (alreadyRated) {
-            tg.showAlert('⚠️ Siz bu sotuvchini avval baholagansiz!');
-            return;
-        }
-        
-        ratings.push({
-            seller_id: sellerId,
-            buyer_id: currentUserId,
-            ad_id: adId,
-            rating: rating,
-            created_at: new Date().toISOString()
-        });
-        
-        saveRatings(ratings);
-        tg.sendData(JSON.stringify({ action: 'rate_seller', seller_id: sellerId, ad_id: adId, rating: rating }));
-        tg.showAlert(`✅ Sotuvchi ${rating}⭐ baholandi!`);
-        renderMarket();
-    });
-}
-
-// ============ SHIKOYAT ============
-function reportAd(adId) {
-    tg.showPopup({
-        title: '⚠️ Shikoyat qilish',
-        message: 'Sababini tanlang:',
-        buttons: [
-            { id: 'yolg'on', text: 'Yolg\'on e\'lon' },
-            { id: 'spam', text: 'Spam' },
-            { id: 'nomaqbul', text: 'Nomaqbul kontent' },
-            { id: 'cancel', text: 'Bekor qilish' }
-        ]
-    }, (buttonId) => {
-        if (buttonId === 'cancel') return;
-        
-        tg.sendData(JSON.stringify({ action: 'report_ad', ad_id: adId, reason: buttonId }));
-        tg.showAlert('📋 Shikoyatingiz qabul qilindi! Admin tekshiradi.');
-    });
-}
-
-// ============ BOG'LANISH ============
-function callPhone(phone) {
-    tg.showAlert(`📞 Telefon: ${phone}`);
-}
-
-function openTg(username) {
-    const cleanUsername = username.replace('@', '');
-    tg.openTelegramLink(`https://t.me/${cleanUsername}`);
-}
-
-// ============ SAHIFALAR ============
+// Sahifalarni almashtirish
 function switchPage(page) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.getElementById(`${page}-page`).classList.add('active');
-    
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     document.querySelector(`.tab[data-page="${page}"]`).classList.add('active');
     
@@ -803,7 +185,49 @@ function switchPage(page) {
     if (page === 'profile') renderProfile();
 }
 
-// ============ FILTER ============
+// Marketni render qilish
+function renderMarket() {
+    const ads = JSON.parse(localStorage.getItem('rqb_ads') || '[]');
+    const container = document.getElementById('ads-list');
+    const filtered = ads.filter(ad => ad.status === 'approved' && (currentFilter === 'all' || ad.category === currentFilter));
+    
+    if (filtered.length === 0) {
+        container.innerHTML = '<div style="text-align:center; padding:40px; color:#666;">Hozircha e\'lonlar yo\'q</div>';
+        return;
+    }
+
+    container.innerHTML = filtered.map(ad => `
+        <div class="card">
+            <span class="category-badge ${ad.category}">${ad.category.toUpperCase()}</span>
+            <div style="font-weight:bold;">${ad.title}</div>
+            <div class="card-price">💰 ${ad.price}</div>
+            <div style="font-size:12px; color:#888;">${ad.description}</div>
+        </div>
+    `).join('');
+}
+
+// Profilni render qilish
+function renderProfile() {
+    const ads = JSON.parse(localStorage.getItem('rqb_ads') || '[]');
+    const myId = tg.initDataUnsafe?.user?.id;
+    const myAds = ads.filter(ad => ad.user_id === myId);
+    const container = document.getElementById('my-ads-list');
+
+    container.innerHTML = myAds.map(ad => `
+        <div class="card">
+            <span class="category-badge ${ad.category}">${ad.category}</span>
+            <div>${ad.title}</div>
+            <div class="status-badge status-pending">⏳ Kutilmoqda</div>
+        </div>
+    `).join('');
+}
+
+// Tab hodisalari
+document.querySelectorAll('.tab').forEach(tab => {
+    tab.onclick = () => switchPage(tab.dataset.page);
+});
+
+// Filter hodisalari
 document.querySelectorAll('.filter-btn').forEach(btn => {
     btn.onclick = () => {
         document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -813,24 +237,12 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
     };
 });
 
-// ============ TABLAR ============
-document.querySelectorAll('.tab').forEach(tab => {
-    tab.onclick = () => switchPage(tab.dataset.page);
-});
-
-// ============ E'LON QOLDIRISH TUGMASI ============
-document.getElementById('submit-ad-btn').onclick = submitAd;
-
-// ============ ESCAPE HTML ============
-function escapeHtml(str) {
-    if (!str) return '';
-    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+// Profil ma'lumotlarini yuklash
+if (tg.initDataUnsafe?.user) {
+    document.getElementById('profile-name').textContent = tg.initDataUnsafe.user.first_name;
+    document.getElementById('profile-id').textContent = 'ID: ' + tg.initDataUnsafe.user.id;
 }
 
-// ============ TELEGRAM READY ============
-tg.ready();
-
-// ============ BOSHLASH ============
 renderMarket();
 </script>
 </body>
