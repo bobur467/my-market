@@ -1,0 +1,1267 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>RQBMARKET - Accounts Marketplace</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap">
+    <style>
+        :root {
+            --bg-color: #0a0a0a;
+            --card-bg: #161616;
+            --accent-gold: #c9a84c;
+            --accent-gold-hover: #b08d3a;
+            --text-main: #ffffff;
+            --text-secondary: #9ca3af;
+            --danger: #ef4444;
+            --success: #10b981;
+            --pending: #f59e0b;
+            --border: #262626;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            padding-bottom: 90px;
+            overflow-x: hidden;
+            line-height: 1.5;
+        }
+
+        /* Pages */
+        .page {
+            display: none;
+            animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .page.active { display: block; }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Header */
+        header {
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            background: rgba(10, 10, 10, 0.85);
+            z-index: 100;
+            backdrop-filter: blur(15px);
+        }
+
+        .logo {
+            font-size: 22px;
+            font-weight: 900;
+            color: var(--accent-gold);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            background: linear-gradient(45deg, var(--accent-gold), #fff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-actions { display: flex; gap: 10px; align-items: center; }
+
+        .btn-icon {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 8px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Bottom Nav */
+        nav.bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(18, 18, 18, 0.95);
+            display: flex;
+            justify-content: space-around;
+            padding: 14px 0;
+            border-top: 1px solid var(--border);
+            backdrop-filter: blur(20px);
+            z-index: 1000;
+            box-shadow: 0 -5px 25px rgba(0,0,0,0.4);
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 10px;
+            gap: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-item.active { color: var(--accent-gold); transform: translateY(-2px); }
+        .nav-item svg { width: 22px; height: 22px; }
+
+        /* Auth Screen */
+        #auth-screen {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            text-align: center;
+        }
+
+        /* Ads Grid */
+        .ads-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .ad-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            position: relative;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .ad-card:hover { transform: translateY(-4px); box-shadow: 0 8px 30px rgba(0,0,0,0.6); }
+
+        .ad-image-container { position: relative; width: 100%; aspect-ratio: 16/9; overflow: hidden; background: #000; }
+        .ad-image { width: 100%; height: 100%; object-fit: contain; }
+        .ad-type-badge { position: absolute; top: 12px; left: 12px; background: rgba(0,0,0,0.7); padding: 4px 10px; border-radius: 8px; font-size: 10px; font-weight: 700; color: var(--accent-gold); text-transform: uppercase; backdrop-filter: blur(5px); }
+
+        .ad-content { padding: 16px; flex-grow: 1; display: flex; flex-direction: column; }
+        .ad-price { font-size: 20px; font-weight: 800; color: var(--accent-gold); margin-bottom: 4px; }
+        .ad-title { font-size: 17px; font-weight: 600; margin-bottom: 12px; color: #fff; }
+
+        .ad-details-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+        .detail-item { font-size: 11px; background: #222; padding: 4px 10px; border-radius: 6px; color: var(--text-secondary); display: flex; align-items: center; gap: 4px; }
+
+        .ad-actions { display: flex; gap: 10px; margin-top: auto; }
+
+        .btn { padding: 12px; border-radius: 12px; font-size: 14px; font-weight: 700; border: none; cursor: pointer; text-align: center; transition: all 0.2s; width: 100%; }
+        .btn-gold { background: var(--accent-gold); color: #000; }
+        .btn-gold:active { background: var(--accent-gold-hover); transform: scale(0.98); }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: #fff; }
+        .btn-danger { background: var(--danger); color: #fff; }
+
+        .status-badge { position: absolute; top: 12px; right: 12px; padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 800; text-transform: uppercase; z-index: 5; }
+        .status-approved { background: var(--success); color: white; }
+        .status-pending { background: var(--pending); color: white; }
+        .status-rejected { background: var(--danger); color: white; }
+
+        /* Forms */
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-size: 13px; margin-bottom: 8px; color: var(--text-secondary); font-weight: 600; }
+        input, textarea, select { width: 100%; background: #0f0f0f; border: 1px solid var(--border); border-radius: 12px; padding: 14px; color: var(--text-main); outline: none; font-size: 15px; transition: border-color 0.2s; }
+        input:focus, textarea:focus { border-color: var(--accent-gold); }
+
+        .photo-upload { width: 100%; aspect-ratio: 16/9; border: 2px dashed var(--border); border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-secondary); cursor: pointer; position: relative; overflow: hidden; background: #0f0f0f; }
+        .photo-upload img { width: 100%; height: 100%; object-fit: contain; position: absolute; }
+
+        /* Tools Bar */
+        .tools-bar { 
+            margin-bottom: 24px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 15px; 
+        }
+        .filter-header { 
+            display: flex; 
+            flex-direction: column;
+            gap: 15px;
+        }
+        @media (min-width: 600px) {
+            .filter-header {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+            }
+        }
+        .extra-filters {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+            margin-top: 5px;
+            scrollbar-width: none;
+        }
+        .extra-filters::-webkit-scrollbar { display: none; }
+        .filter-input-small {
+            min-width: 100px;
+            padding: 8px 12px;
+            font-size: 12px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: #fff;
+        }
+        .search-box { 
+            width: 100%; 
+            background: var(--card-bg); 
+            border: 1px solid var(--border); 
+            border-radius: 15px; 
+            padding: 14px 20px; 
+            color: #fff; 
+            outline: none; 
+            font-size: 16px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+        }
+        .filter-tabs { 
+            display: flex; 
+            gap: 8px; 
+            overflow-x: auto; 
+            padding-bottom: 5px; 
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            flex: 1;
+        }
+        .filter-tabs::-webkit-scrollbar { display: none; }
+        .filter-tab { 
+            padding: 10px 20px; 
+            background: var(--card-bg); 
+            border: 1px solid var(--border); 
+            border-radius: 12px; 
+            font-size: 13px; 
+            white-space: nowrap; 
+            color: var(--text-secondary); 
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .filter-tab.active { background: var(--accent-gold); color: #000; border-color: var(--accent-gold); font-weight: 700; }
+        .sort-select { 
+            background: var(--card-bg); 
+            border: 1px solid var(--border); 
+            color: var(--accent-gold); 
+            padding: 10px 15px; 
+            border-radius: 12px; 
+            font-size: 13px; 
+            outline: none;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* VIP Ad Styling */
+        .ad-card.vip {
+            border: 2px solid var(--accent-gold);
+            box-shadow: 0 0 15px rgba(201, 168, 76, 0.3);
+        }
+        .vip-badge {
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(90deg, #ff9a00, #ff0500);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 900;
+            text-transform: uppercase;
+            z-index: 10;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.5);
+        }
+
+        .verified-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #1d9bf0;
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 10px;
+            margin-left: 6px;
+            vertical-align: middle;
+            box-shadow: 0 2px 5px rgba(29, 155, 240, 0.3);
+        }
+
+        .view-count {
+            font-size: 11px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Stats in Modal */
+        .modal-stat {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Profile & Admin */
+        .admin-badge { background: var(--danger); color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 800; text-transform: uppercase; margin-left: 8px; }
+        .safe-tips-card { background: #1a1a1a; padding: 12px; border-radius: 12px; margin-bottom: 10px; border-left: 3px solid var(--accent-gold); font-size: 13px; }
+        .safe-tips-card h4 { font-size: 14px; margin-bottom: 5px !important; }
+
+        /* Modal */
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-color); z-index: 2000; display: none; overflow-y: auto; padding-bottom: 50px; }
+        .modal-content { padding: 20px; max-width: 800px; margin: 0 auto; }
+
+        /* Notification */
+        #notification { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #1e1e1e; color: #fff; padding: 16px 24px; border-radius: 15px; font-size: 14px; font-weight: 600; z-index: 3000; display: none; box-shadow: 0 10px 40px rgba(0,0,0,0.6); border-left: 5px solid var(--accent-gold); white-space: nowrap; }
+
+        /* Loader */
+        .loader { width: 30px; height: 30px; border: 3px solid rgba(201, 168, 76, 0.3); border-top: 3px solid var(--accent-gold); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 20px auto; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        @media (max-width: 480px) {
+            .ads-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <header id="main-header" style="display: none;">
+        <div class="logo">RQBMARKET</div>
+        <div class="header-actions">
+            <button class="btn-icon" onclick="showPage('safety')">🛡️</button>
+            <button class="btn-icon" onclick="toggleLang()" id="langBtn">RU</button>
+        </div>
+    </header>
+
+    <!-- Auth Screen -->
+    <div id="auth-screen">
+        <div class="logo" style="font-size: 40px; margin-bottom: 20px;">RQBMARKET</div>
+        <p style="color: var(--text-secondary); margin-bottom: 40px;" id="auth-desc">Google orqali xavfsiz va tezkor kirish</p>
+        
+        <button class="btn btn-gold" id="loginBtn" style="max-width: 300px; width:100%; display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 20px;">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18" alt="Google">
+            Google orqali kirish
+        </button>
+
+        <p id="login-status" style="font-size:12px; color:var(--text-secondary);"></p>
+        <p style="font-size: 12px; color: var(--text-secondary);">Kirish orqali siz xizmat qoidalariga rozilik bildirasiz</p>
+    </div>
+
+    <!-- Market Page -->
+    <div id="page-market" class="page">
+        <div class="tools-bar">
+            <input type="text" class="search-box" id="searchInput" oninput="renderAds()" placeholder="Qidiruv...">
+            <div class="filter-header">
+                <div class="filter-tabs" id="filterTabs">
+                    <div class="filter-tab active" onclick="setCategory('all')" id="cat-all">Hammasi</div>
+                    <div class="filter-tab" onclick="setCategory('Instagram')" id="cat-ig">Instagram</div>
+                    <div class="filter-tab" onclick="setCategory('Telegram')" id="cat-tg">Telegram</div>
+                    <div class="filter-tab" onclick="setCategory('Premium')" id="cat-prem">Premium</div>
+                    <div class="filter-tab" onclick="setCategory('Stars')" id="cat-stars">Stars</div>
+                </div>
+                <div style="display:flex; gap:10px;">
+                    <select class="sort-select" id="sortSelect" onchange="renderAds()">
+                        <option value="newest" id="opt-new">Yangi</option>
+                        <option value="price-asc" id="opt-price-asc">Arzon</option>
+                        <option value="price-desc" id="opt-price-desc">Qimmat</option>
+                        <option value="views-desc" id="opt-popular">Ommabop</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div id="adsList" class="ads-grid"></div>
+        <div id="market-loader" class="loader" style="display: none;"></div>
+    </div>
+
+    <!-- Add Page -->
+    <div id="page-add" class="page">
+        <h2 id="add-title" style="margin-bottom: 24px;">Yangi e'lon</h2>
+        <div id="add-form">
+            <div class="form-group">
+                <label id="lbl-category">Kategoriya</label>
+                <select id="ad-category">
+                    <option value="Instagram">Instagram</option>
+                    <option value="Telegram">Telegram</option>
+                    <option value="Premium">Telegram Premium</option>
+                    <option value="Stars">Telegram Stars</option>
+                </select>
+            </div>
+            <div class="form-group" id="group-title">
+                <label id="lbl-title">Profil nomi (@username)</label>
+                <input type="text" id="ad-title" placeholder="Masalan: @uz_blog">
+            </div>
+            <div class="form-group" id="group-followers">
+                <label id="lbl-followers">Obunachilar soni</label>
+                <input type="number" id="ad-followers" placeholder="5000">
+            </div>
+            <div class="form-group" id="group-price">
+                <label id="lbl-price">Narxi</label>
+                <div style="display:flex; gap:10px;">
+                    <input type="number" id="ad-price" placeholder="100" style="flex:1;">
+                    <select id="ad-currency" style="width:80px; flex:none;">
+                        <option value="$">$</option>
+                        <option value="UZS">UZS</option>
+                        <option value="₽">₽</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label id="lbl-desc">Tavsif</label>
+                <textarea id="ad-desc" rows="4" placeholder="Aktivlik, daromad haqida ma'lumot..."></textarea>
+            </div>
+            <div class="form-group" id="group-mail">
+                <label id="lbl-mail">Asosiy pochta (Native mail)</label>
+                <select id="ad-mail">
+                    <option value="yes" id="opt-yes">Bor</option>
+                    <option value="no" id="opt-no">Yo'q</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label id="lbl-phone">Bog'lanish (Telefon yoki @username)</label>
+                <input type="text" id="ad-phone" placeholder="+998... yoki @username">
+            </div>
+            <div class="form-group" id="group-photo">
+                <label id="lbl-photo">Screenshot (Maksimum 1MB)</label>
+                <div class="photo-upload" onclick="document.getElementById('photoInput').click()">
+                    <div id="photoPlaceholder">🖼️ Rasm tanlang</div>
+                    <img id="photoPreview" src="" style="display: none;">
+                    <input type="file" id="photoInput" accept="image/*" style="display: none;" onchange="previewPhoto(event)">
+                </div>
+            </div>
+            <button class="btn btn-gold" id="btn-submit" onclick="submitAd()">Joylash</button>
+        </div>
+    </div>
+
+    <!-- Wishlist Page -->
+    <div id="page-wishlist" class="page">
+        <h2 id="wishlist-title" style="margin-bottom: 24px;">Saqlanganlar</h2>
+        <div id="wishlistList" class="ads-grid"></div>
+    </div>
+
+    <!-- Profile Page -->
+    <div id="page-profile" class="page">
+        <div style="background:var(--card-bg); padding:15px; border-radius:16px; border:1px solid var(--border); margin-bottom:15px; display:flex; align-items:center; gap:15px; position:relative;">
+            <div id="user-photo" style="width:50px; height:50px; border-radius:50%; background:#333; overflow:hidden; flex:none;">
+                <img id="profile-img" src="" style="width:100%; height:100%; object-fit:cover; display:none;">
+            </div>
+            <div style="overflow:hidden;">
+                <div style="display:flex; align-items:center; gap:5px;">
+                    <h3 id="user-name" style="margin:0; font-size:16px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Ism</h3>
+                    <span id="admin-indicator" class="admin-badge" style="display:none;">Admin</span>
+                </div>
+                <div id="user-email" style="font-size:11px; color:var(--text-secondary); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">email@example.com</div>
+            </div>
+            <button class="btn-icon" style="margin-left:auto; background:none; border:none; color:var(--text-secondary); font-size:20px;" onclick="logout()">🚪</button>
+        </div>
+        
+        <!-- Admin Section Link -->
+        <div id="admin-link" style="display:none; margin-bottom:15px;">
+            <button class="btn btn-outline" style="border-color:var(--danger); color:var(--danger);" onclick="showPage('admin')">🛡️ Admin Panel</button>
+        </div>
+
+        <!-- Escrow/Garant Section -->
+        <div style="background:var(--card-bg); padding:15px; border-radius:16px; border:1px solid var(--border); margin-bottom:20px; display:flex; align-items:center; justify-content:space-between; gap:10px;">
+            <div style="flex:1;">
+                <h4 style="margin:0 0 4px 0; color:var(--accent-gold); font-size:14px;">🤝 Garant (@escopem)</h4>
+                <p style="margin:0; font-size:11px; color:var(--text-secondary);">Xavfsiz savdo kafolati</p>
+            </div>
+            <button class="btn btn-gold" style="width:auto; padding:8px 16px; font-size:12px;" onclick="window.open('https://t.me/escopem')">Bog'lanish</button>
+        </div>
+
+        <h3 id="my-ads-title" style="margin-bottom:20px;">Mening e'lonlarim</h3>
+        <div id="myAdsList" class="ads-grid"></div>
+    </div>
+
+    <!-- Admin Page -->
+    <div id="page-admin" class="page">
+        <h2 style="margin-bottom:20px; color:var(--danger); display:flex; align-items:center; gap:10px;">
+            Admin Panel <span id="admin-stats-total" style="font-size:12px; background:var(--card-bg); padding:4px 10px; border-radius:20px; color:var(--text-secondary);">Total: 0</span>
+        </h2>
+        
+        <!-- Admin Dashboard -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:20px;">
+            <div style="background:var(--card-bg); padding:12px; border-radius:12px; border:1px solid var(--border); text-align:center;">
+                <div style="font-size:10px; color:var(--text-secondary); text-transform:uppercase;">Kutilmoqda</div>
+                <div id="admin-stats-pending" style="font-size:18px; font-weight:900; color:var(--accent-gold);">0</div>
+            </div>
+            <div style="background:var(--card-bg); padding:12px; border-radius:12px; border:1px solid var(--border); text-align:center;">
+                <div style="font-size:10px; color:var(--text-secondary); text-transform:uppercase;">Tasdiqlangan</div>
+                <div id="admin-stats-approved" style="font-size:18px; font-weight:900; color:var(--success);">0</div>
+            </div>
+        </div>
+
+        <div class="filter-tabs" style="margin-bottom:20px;">
+            <div class="filter-tab active" onclick="setAdminTab('pending', this)">Kutilmoqda</div>
+            <div class="filter-tab" onclick="setAdminTab('all', this)">Barchasi</div>
+            <div class="filter-tab" onclick="setAdminTab('reports', this)">Shikoyatlar</div>
+        </div>
+        <div id="adminList" class="ads-grid"></div>
+    </div>
+
+    <!-- Safety Page -->
+    <div id="page-safety" class="page">
+        <h2 id="safety-title" style="margin-bottom: 20px; font-size: 18px;">🛡️ Foydalanish qo'llanmasi</h2>
+        
+        <div class="safe-tips-card">
+            <h4 style="color:var(--accent-gold);">1. Native Mail</h4>
+            <p style="color:var(--text-secondary);">Birinchi pochtasiz akkauntni sotib olmang. Qaytarib olish xavfi yuqori.</p>
+        </div>
+
+        <div class="safe-tips-card">
+            <h4 style="color:var(--accent-gold);">2. Verified Sotuvchilar</h4>
+            <p style="color:var(--text-secondary);"><b>💎 Verified</b> belgisi adminlar tomonidan tekshirilgan ishonchli foydalanuvchilarni bildiradi.</p>
+        </div>
+
+        <div class="safe-tips-card">
+            <h4 style="color:var(--accent-gold);">3. Xavfsiz Savdo</h4>
+            <p style="color:var(--accent-gold); font-weight:700; margin-bottom:4px !important;">Aslo Garant xizmatisiz pul o'tkazmang!</p>
+            <p style="color:var(--text-secondary);">Faqat <b>@escopem</b> rasmiy garantimiz orqali savdo qiling.</p>
+        </div>
+
+        <button class="btn btn-gold" style="margin-top:10px; font-size:13px;" onclick="showPage('market')">Tushunarli</button>
+    </div>
+
+    <!-- Modal Ad Details -->
+    <div id="adModal" class="modal">
+        <div class="modal-content">
+            <button class="btn-icon" onclick="closeModal()" style="margin-bottom:20px;">← Orqaga</button>
+            <div id="modalContent"></div>
+        </div>
+    </div>
+
+    <!-- Bottom Nav -->
+    <nav class="bottom-nav" id="main-nav" style="display: none;">
+        <a href="javascript:void(0)" class="nav-item active" onclick="showPage('market', this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+            <span id="nav-market">Bozor</span>
+        </a>
+        <a href="javascript:void(0)" class="nav-item" onclick="showPage('add', this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+            <span id="nav-add">Sotish</span>
+        </a>
+        <a href="javascript:void(0)" class="nav-item" onclick="showPage('wishlist', this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+            <span id="nav-wishlist">Saqlangan</span>
+        </a>
+        <a href="javascript:void(0)" class="nav-item" onclick="showPage('profile', this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            <span id="nav-profile">Kabinet</span>
+        </a>
+    </nav>
+
+    <div id="notification"></div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, query, where, orderBy, onSnapshot, serverTimestamp, getDocFromServer } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+
+        // --- Config ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyD8r-814h7vVpoQv72SYls04hBDbtYTvbI",
+            authDomain: "gen-lang-client-0500325851.firebaseapp.com",
+            projectId: "gen-lang-client-0500325851",
+            storageBucket: "gen-lang-client-0500325851.firebasestorage.app",
+            messagingSenderId: "498342227463",
+            appId: "1:498342227463:web:481c81f22bbda721bd04a2",
+            firestoreDatabaseId: "ai-studio-808693b8-74bb-424a-b01a-340756d94f57"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+        const auth = getAuth();
+        const googleProvider = new GoogleAuthProvider();
+
+        // --- Global State ---
+        let currentUser = null;
+        let isAdmin = false;
+        let currentLang = localStorage.getItem('lang') || 'uz';
+        let currentCategory = 'all';
+        let photoB64 = '';
+        let adsData = [];
+        let wishlistData = [];
+        let adminTab = 'pending';
+        let adsUnsubscribe = null;
+        let wishlistUnsubscribe = null;
+
+        const i18n = {
+                uz: {
+                market: "Bozor", sell: "Sotish", wishlist: "Saqlangan", profile: "Kabinet",
+                search: "Qidiruv...", all: "Hammasi", ig: "Instagram", tg: "Telegram",
+                prem: "Premium", stars: "Stars",
+                addTitle: "Yangi e'lon", lblCat: "Kategoriya", 
+                lblTitleAccount: "Profil nomi (@username)",
+                lblTitleService: "Xizmat nomi / Miqdori",
+                lblPrice: "Narxi ($)", lblDesc: "Tavsif", lblPhone: "Bog'lanish",
+                placeholderAccount: "Masalan: @uz_blog",
+                placeholderService: "Masalan: 1 yillik Premium yoki 1000 Stars",
+                lblPhoto: "Screenshot (Maks 1MB)", btnSubmit: "Joylash", myAds: "Mening e'lonlarim",
+                empty: "Hech narsa topilmadi", saved: "Saqlanganlar", report: "Shikoyat",
+                buy: "Ko'rish", contact: "Bog'lanish",
+                msgAdAdded: "E'lon moderatorlarga yuborildi!", msgError: "Maydonlarni to'ldiring!",
+                msgLimit: "Sizda maksimal 3 ta e'lon bo'lishi mumkin!",
+                statusPending: "Kutilmoqda", statusApproved: "Tasdiqlangan", statusRejected: "Rad etilgan",
+                rules: "Qoidalar", understand: "Tushunarli", loginDesc: "Akkauntlar savdosi uchun xavfsiz platforma"
+            },
+            ru: {
+                market: "Маркет", sell: "Продать", wishlist: "Избранное", profile: "Профиль",
+                search: "Поиск...", all: "Все", ig: "Instagram", tg: "Telegram",
+                prem: "Premium", stars: "Stars",
+                addTitle: "Новое объявление", lblCat: "Категория", 
+                lblTitleAccount: "Название профиля (@username)",
+                lblTitleService: "Название услуги / Количество",
+                lblPrice: "Цена ($)", lblDesc: "Описание", lblPhone: "Контакт",
+                placeholderAccount: "Например: @uz_blog",
+                placeholderService: "Например: 1 год Premium или 1000 Stars",
+                lblPhoto: "Скриншот (Макс 1МБ)", btnSubmit: "Опубликовать", myAds: "Мои объявления",
+                empty: "Ничего не найдено", saved: "Избранное", report: "Жалоба",
+                buy: "Смотреть", contact: "Связаться",
+                msgAdAdded: "Объявление на модерации!", msgError: "Заполните поля!",
+                msgLimit: "У вас может быть максимум 3 объявления!",
+                statusPending: "Ожидание", statusApproved: "Одобрено", statusRejected: "Отклонено",
+                rules: "Правила", understand: "Понятно", loginDesc: "Безопасная платформа для торговли аккаунтами"
+            }
+        };
+
+        // --- Error Handler ---
+        function safeHaptic(type = 'light') {
+            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback) {
+                if (type === 'success' || type === 'error' || type === 'warning') {
+                    window.Telegram.WebApp.HapticFeedback.notificationOccurred(type);
+                } else {
+                    window.Telegram.WebApp.HapticFeedback.impactOccurred(type);
+                }
+            }
+        }
+
+        function handleFirestoreError(error, operationType, path) {
+            const errInfo = {
+                error: error instanceof Error ? error.message : String(error),
+                authInfo: {
+                    userId: auth.currentUser?.uid,
+                    email: auth.currentUser?.email,
+                    emailVerified: auth.currentUser?.emailVerified
+                },
+                operationType,
+                path
+            };
+            console.error('Firestore Error: ', JSON.stringify(errInfo));
+            showNotify('Xatolik yuz berdi. Iltimos qaytadan urinib ko\'ring.');
+        }
+
+        // --- Auth Logic ---
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                // Clear old listeners if any
+                if(adsUnsubscribe) adsUnsubscribe();
+                if(wishlistUnsubscribe) wishlistUnsubscribe();
+
+                currentUser = user;
+                await syncUserProfile(user);
+                document.getElementById('auth-screen').style.display = 'none';
+                document.getElementById('main-header').style.display = 'flex';
+                document.getElementById('main-nav').style.display = 'flex';
+                showPage('market');
+                updateProfileUI();
+                listenToAds();
+                listenToWishlist();
+                testConnection();
+            } else {
+                currentUser = null;
+                isAdmin = false;
+                if(adsUnsubscribe) adsUnsubscribe();
+                if(wishlistUnsubscribe) wishlistUnsubscribe();
+                adsUnsubscribe = null;
+                wishlistUnsubscribe = null;
+
+                document.getElementById('auth-screen').style.display = 'flex';
+                document.getElementById('main-header').style.display = 'none';
+                document.getElementById('main-nav').style.display = 'none';
+            }
+        });
+
+        async function syncUserProfile(user) {
+            const userDocRef = doc(db, 'users', user.uid);
+            try {
+                const userDoc = await getDoc(userDocRef);
+                if (!userDoc.exists()) {
+                    await setDoc(userDocRef, {
+                        id: user.uid,
+                        name: user.displayName || 'Foydalanuvchi',
+                        photo: user.photoURL || '',
+                        email: user.email || '',
+                        role: 'user',
+                        createdAt: serverTimestamp()
+                    });
+                }
+                
+                // Admin detection
+                const adminEmails = ['mbob20058@gmail.com']; 
+                const adminUids = ['telegram:6678558538']; 
+                
+                if (adminEmails.includes(user.email) || adminUids.includes(user.uid)) {
+                    isAdmin = true;
+                }
+                
+            } catch (error) {
+                handleFirestoreError(error, 'write', 'users/' + user.uid);
+            }
+        }
+
+        document.getElementById('loginBtn').onclick = () => {
+            const status = document.getElementById('login-status');
+            status.innerText = "Google oynasi ochilmoqda...";
+            signInWithPopup(auth, googleProvider).catch(error => {
+                console.error("Login Error:", error);
+                status.innerHTML = `<span style="color:#ff4d4d">Xato: ${error.message}</span>`;
+            });
+        };
+
+        window.logout = () => {
+            signOut(auth);
+        };
+
+        // --- Core UI Functions ---
+        window.showPage = (pageId, navEl) => {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById('page-' + pageId).classList.add('active');
+            
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            if(navEl) navEl.classList.add('active');
+            
+            if(pageId === 'admin') renderAdminAds();
+            if(pageId === 'wishlist') renderWishlist();
+            if(pageId === 'profile') renderMyAds();
+            
+            safeHaptic('light');
+        };
+
+        window.toggleLang = () => {
+            currentLang = currentLang === 'uz' ? 'ru' : 'uz';
+            localStorage.setItem('lang', currentLang);
+            document.getElementById('langBtn').innerText = currentLang === 'uz' ? 'RU' : 'UZ';
+            updateUI();
+        };
+
+        function updateUI() {
+            const t = i18n[currentLang];
+            document.getElementById('searchInput').placeholder = t.search;
+            document.getElementById('cat-all').innerText = t.all;
+            document.getElementById('cat-ig').innerText = t.ig;
+            document.getElementById('cat-tg').innerText = t.tg;
+            document.getElementById('cat-prem').innerText = t.prem || 'Premium';
+            document.getElementById('cat-stars').innerText = t.stars || 'Stars';
+            document.getElementById('add-title').innerText = t.addTitle;
+            document.getElementById('lbl-category').innerText = t.lblCat;
+            
+            updateAddFormFields(); // Update labels in the form
+            
+            document.getElementById('lbl-price').innerText = t.lblPrice;
+            document.getElementById('lbl-desc').innerText = t.lblDesc;
+            document.getElementById('lbl-phone').innerText = t.lblPhone;
+            document.getElementById('btn-submit').innerText = t.btnSubmit;
+            
+            document.getElementById('nav-market').innerText = t.market;
+            document.getElementById('nav-add').innerText = t.sell;
+            document.getElementById('nav-wishlist').innerText = t.wishlist;
+            document.getElementById('nav-profile').innerText = t.profile;
+            renderAds();
+        }
+
+        window.updateAddFormFields = () => {
+            const cat = document.getElementById('ad-category').value;
+            const t = i18n[currentLang];
+            const isAccount = cat === 'Instagram' || cat === 'Telegram';
+            
+            document.getElementById('lbl-title').innerText = isAccount ? t.lblTitleAccount : t.lblTitleService;
+            document.getElementById('ad-title').placeholder = isAccount ? t.placeholderAccount : t.placeholderService;
+            
+            document.getElementById('group-followers').style.display = isAccount ? 'block' : 'none';
+            document.getElementById('group-mail').style.display = isAccount ? 'block' : 'none';
+            document.getElementById('group-photo').style.display = isAccount ? 'block' : 'none';
+        };
+
+        document.getElementById('ad-category').onchange = updateAddFormFields;
+
+        function updateProfileUI() {
+            if(!currentUser) return;
+            const tg = window.Telegram.WebApp;
+            const tgUser = tg.initDataUnsafe.user;
+            
+            document.getElementById('user-name').innerText = (tgUser ? (tgUser.first_name + (tgUser.last_name ? ' ' + tgUser.last_name : '')) : currentUser.displayName) || 'RQB User';
+            document.getElementById('user-email').innerText = tgUser ? ('@' + tgUser.username || 'TG ID: ' + tgUser.id) : currentUser.email;
+            
+            if(currentUser.photoURL || (tgUser && tgUser.photo_url)) {
+                document.getElementById('profile-img').src = currentUser.photoURL || tgUser.photo_url;
+                document.getElementById('profile-img').style.display = 'block';
+            }
+            if(isAdmin) {
+                document.getElementById('admin-indicator').style.display = 'inline-block';
+                document.getElementById('admin-link').style.display = 'block';
+            }
+            renderMyAds();
+            renderWishlist();
+        }
+
+        // --- Data Listeners ---
+        function listenToAds() {
+            if(adsUnsubscribe) adsUnsubscribe();
+            const q = query(collection(db, 'ads'), orderBy('createdAt', 'desc'));
+            adsUnsubscribe = onSnapshot(q, (snapshot) => {
+                adsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderAds();
+                renderMyAds();
+                renderWishlist();
+                renderAdminAds();
+            }, (error) => {
+                handleFirestoreError(error, 'list', 'ads');
+            });
+        }
+
+        function listenToWishlist() {
+            if(!currentUser) return;
+            if(wishlistUnsubscribe) wishlistUnsubscribe();
+            wishlistUnsubscribe = onSnapshot(collection(db, 'users', currentUser.uid, 'wishlist'), (snapshot) => {
+                wishlistData = snapshot.docs.map(doc => doc.id);
+                renderAds();
+            }, (error) => {
+                handleFirestoreError(error, 'list', 'wishlist');
+            });
+        }
+
+        function createAdCard(ad, isSaved, isOwner = false, isAdminMode = false) {
+            const card = document.createElement('div');
+            card.className = `ad-card ${ad.isVIP ? 'vip' : ''}`;
+            const t = i18n[currentLang];
+            const isAccount = ad.category === 'Instagram' || ad.category === 'Telegram';
+            
+            let statusBadge = '';
+            if(isOwner || isAdminMode) {
+                const statusClass = 'status-' + ad.status;
+                statusBadge = `<div class="status-badge ${statusClass}">${t['status' + ad.status.charAt(0).toUpperCase() + ad.status.slice(1)]}</div>`;
+            }
+
+            const vipBadge = ad.isVIP ? `<div class="vip-badge">VIP E'LON</div>` : '';
+
+            card.innerHTML = `
+                ${vipBadge}
+                ${statusBadge}
+                <div class="ad-image-container" onclick="window.viewAd('${ad.id}')">
+                    <div class="ad-type-badge">${ad.category}</div>
+                    <img src="${ad.photo || 'https://via.placeholder.com/400x225?text=No+Photo'}" class="ad-image">
+                </div>
+                <div class="ad-content">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                        <div class="ad-price">${ad.price} ${ad.currency || '$'}</div>
+                        <div class="view-count">👁️ ${ad.views || 0}</div>
+                    </div>
+                    <div class="ad-title">${ad.title} ${ad.isVerifiedUser ? '<span class="verified-badge">✓</span>' : ''}</div>
+                    <div style="font-size:9px; color:var(--text-secondary); margin-top:2px;">${ad.userEmail || 'User'}</div>
+                    ${isAccount ? `
+                    <div class="ad-details-row">
+                        <div class="detail-item">👥 ${ad.followers || 0}</div>
+                        <div class="detail-item">📧 ${ad.mail === 'yes' ? 'Native' : 'No Mail'}</div>
+                    </div>
+                    ` : ''}
+                        <div class="ad-actions">
+                        <button class="btn btn-gold" onclick="window.viewAd('${ad.id}')">${t.buy}</button>
+                        ${!isOwner && !isAdminMode ? `<button class="btn btn-outline" style="width:50px; flex:none;" onclick="window.toggleWishlist('${ad.id}')">${isSaved ? '❤️' : '🤍'}</button>` : ''}
+                        ${(isOwner || isAdminMode) ? `<button class="btn btn-outline" style="width:50px; flex:none; color:var(--danger);" onclick="window.deleteAd('${ad.id}')">🗑️</button>` : ''}
+                        ${isAdminMode ? `
+                            <button class="btn btn-outline" style="width:50px; flex:none; color:var(--success);" onclick="window.adminAction('${ad.id}', 'approved')">✅</button>
+                            <button class="btn btn-outline" style="width:50px; flex:none; color:var(--danger);" onclick="window.adminAction('${ad.id}', 'rejected')">❌</button>
+                            <button class="btn btn-outline" style="width:50px; flex:none; color:var(--accent-gold);" onclick="window.adminAction('${ad.id}', 'toggleVIP')">⭐</button>
+                            <button class="btn btn-outline" style="width:50px; flex:none; color:var(--success);" onclick="window.adminAction('${ad.id}', 'toggleVerified')">💎</button>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+            return card;
+        }
+
+        window.renderAds = () => {
+            const list = document.getElementById('adsList');
+            const queryText = document.getElementById('searchInput').value.toLowerCase();
+            const sortBy = document.getElementById('sortSelect').value;
+            const t = i18n[currentLang];
+            
+            list.innerHTML = '';
+            
+            let filtered = adsData.filter(ad => {
+                const matchesCat = currentCategory === 'all' || ad.category === currentCategory;
+                const matchesSearch = ad.title.toLowerCase().includes(queryText) || ad.description.toLowerCase().includes(queryText);
+                return matchesCat && matchesSearch && ad.status === 'approved';
+            });
+
+            // Sort VIP first, then by selected sort
+            filtered.sort((a, b) => (b.isVIP ? 1 : 0) - (a.isVIP ? 1 : 0));
+
+            if(sortBy === 'price-asc') filtered.sort((a, b) => a.isVIP === b.isVIP ? a.price - b.price : 0);
+            else if(sortBy === 'price-desc') filtered.sort((a, b) => a.isVIP === b.isVIP ? b.price - a.price : 0);
+            else if(sortBy === 'views-desc') filtered.sort((a, b) => a.isVIP === b.isVIP ? (b.views || 0) - (a.views || 0) : 0);
+            else filtered.sort((a, b) => a.isVIP === b.isVIP ? (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0) : 0);
+
+            if(filtered.length === 0) {
+                list.innerHTML = `<div style="text-align:center; padding:40px; color:var(--text-secondary); grid-column:1/-1;">${t.empty}</div>`;
+                return;
+            }
+
+            filtered.forEach(ad => {
+                const isSaved = wishlistData.includes(ad.id);
+                list.appendChild(createAdCard(ad, isSaved));
+            });
+        };
+
+        window.setCategory = (cat) => {
+            currentCategory = cat;
+            document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+            const map = {
+                'all': 'cat-all',
+                'Instagram': 'cat-ig',
+                'Telegram': 'cat-tg',
+                'Premium': 'cat-prem',
+                'Stars': 'cat-stars'
+            };
+            document.getElementById(map[cat] || 'cat-all').classList.add('active');
+            renderAds();
+        };
+
+        // --- Photo Preview ---
+        window.previewPhoto = (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+            if (file.size > 1048576) {
+                showNotify("Rasm hajmi 1MB dan oshmasligi kerak!");
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                photoB64 = e.target.result;
+                document.getElementById('photoPreview').src = photoB64;
+                document.getElementById('photoPreview').style.display = 'block';
+                document.getElementById('photoPlaceholder').style.display = 'none';
+            }
+            reader.readAsDataURL(file);
+        };
+
+        // --- Actions ---
+        window.submitAd = async () => {
+            const title = document.getElementById('ad-title').value;
+            const followers = document.getElementById('ad-followers').value;
+            const price = parseFloat(document.getElementById('ad-price').value);
+            const currency = document.getElementById('ad-currency').value;
+            const desc = document.getElementById('ad-desc').value;
+            const phone = document.getElementById('ad-phone').value;
+            const category = document.getElementById('ad-category').value;
+            const mail = document.getElementById('ad-mail').value;
+
+            const isAccount = category === 'Instagram' || category === 'Telegram';
+
+            if(!title || !price || !desc || !phone) {
+                showNotify(i18n[currentLang].msgError);
+                return;
+            }
+
+            if(isAccount && !followers) {
+                showNotify("Obunachilar sonini kiriting!");
+                return;
+            }
+
+            if(isAccount && !photoB64) {
+                showNotify("Screenshot yuklang!");
+                return;
+            }
+
+            const loader = document.getElementById('btn-submit');
+            loader.disabled = true;
+            loader.innerText = "...";
+
+            try {
+                // Check ad limit
+                const myAds = adsData.filter(ad => ad.userId === currentUser.uid);
+                if(myAds.length >= 3) {
+                    showNotify(i18n[currentLang].msgLimit);
+                    return;
+                }
+
+                await addDoc(collection(db, 'ads'), {
+                    userId: currentUser.uid,
+                    userEmail: currentUser.email,
+                    category,
+                    title,
+                    followers: isAccount ? followers : '0',
+                    price,
+                    currency,
+                    description: desc,
+                    mail: isAccount ? mail : 'no',
+                    phone,
+                    photo: photoB64,
+                    status: 'pending',
+                    views: 0,
+                    isVIP: false,
+                    isVerifiedUser: false,
+                    createdAt: serverTimestamp()
+                });
+
+                showNotify(i18n[currentLang].msgAdAdded);
+                resetForm();
+                showPage('market');
+            } catch (error) {
+                handleFirestoreError(error, 'write', 'ads');
+            } finally {
+                loader.disabled = false;
+                loader.innerText = i18n[currentLang].btnSubmit;
+            }
+        };
+
+        function resetForm() {
+            document.getElementById('ad-title').value = '';
+            document.getElementById('ad-followers').value = '';
+            document.getElementById('ad-price').value = '';
+            document.getElementById('ad-desc').value = '';
+            document.getElementById('ad-phone').value = '';
+            photoB64 = '';
+            document.getElementById('photoPreview').style.display = 'none';
+            document.getElementById('photoPlaceholder').style.display = 'block';
+        }
+
+        window.toggleWishlist = async (adId) => {
+            const ref = doc(db, 'users', currentUser.uid, 'wishlist', adId);
+            try {
+                if(wishlistData.includes(adId)) {
+                    await deleteDoc(ref);
+                } else {
+                    await setDoc(ref, { adId, savedAt: serverTimestamp() });
+                    safeHaptic('success');
+                }
+            } catch (error) {
+                handleFirestoreError(error, 'write', 'wishlist');
+            }
+        };
+
+        window.viewAd = async (id) => {
+            const ad = adsData.find(a => a.id === id);
+            if(!ad) return;
+            const t = i18n[currentLang];
+            const isSaved = wishlistData.includes(ad.id);
+
+            // Increment views
+            try {
+                const adRef = doc(db, 'ads', id);
+                await updateDoc(adRef, { views: (ad.views || 0) + 1 });
+            } catch (e) { /* silent fail on views */ }
+
+            const isAccount = ad.category === 'Instagram' || ad.category === 'Telegram';
+
+            const content = `
+                <img src="${ad.photo || 'https://via.placeholder.com/400x225?text=No+Photo'}" style="width:100%; border-radius:20px; margin-bottom:20px; box-shadow:var(--shadow);">
+                <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:10px;">
+                    <div>
+                        <div style="color:var(--accent-gold); font-size:12px; font-weight:700; text-transform:uppercase; display:flex; align-items:center; gap:5px;">
+                            ${ad.category}
+                            ${ad.isVerifiedUser ? '<span style="background:#1d9bf0; color:white; font-size:9px; padding:2px 6px; border-radius:20px;">💎 VERIFIED</span>' : ''}
+                        </div>
+                        <h2 style="margin:5px 0 0 0;">${ad.title}</h2>
+                        <div style="font-size:11px; color:var(--text-secondary); margin-top:5px;">Sotuvchi: ${ad.userEmail || 'RQB User'}</div>
+                    </div>
+                    <div style="font-size:24px; font-weight:900; color:var(--accent-gold);">${ad.price} ${ad.currency || '$'}</div>
+                </div>
+                
+                <div style="display:flex; gap:15px; margin-bottom:20px;">
+                    <div class="modal-stat">👁️ ${ad.views || 0} marta ko'rildi</div>
+                    <div class="modal-stat">📅 ${new Date(ad.createdAt?.seconds * 1000).toLocaleDateString()}</div>
+                </div>
+
+                ${isAccount ? `
+                <div class="ad-details-row" style="margin-bottom:20px;">
+                    <div class="detail-item" style="font-size:14px; padding:8px 12px;">📊 Obunachilar: ${ad.followers || 0}</div>
+                    <div class="detail-item" style="font-size:14px; padding:8px 12px;">📧 Pochta: ${ad.mail === 'yes' ? 'Native (Bor)' : 'Yo\'q'}</div>
+                </div>
+                ` : ''}
+
+                <p style="color:var(--text-secondary); line-height:1.6; margin-bottom:25px; white-space: pre-wrap;">${ad.description}</p>
+                
+                <div style="background:var(--card-bg); padding:20px; border-radius:18px; border:1px solid var(--border); margin-bottom:25px;">
+                    <div style="font-size:13px; color:var(--text-secondary); margin-bottom:12px;">Bog'lanish ma'lumotlari:</div>
+                    <div style="font-size:18px; font-weight:700; margin-bottom:15px;">${ad.phone}</div>
+                    <button class="btn btn-gold" onclick="window.open('https://t.me/${ad.phone.startsWith('@') ? ad.phone.substring(1) : ad.phone}')">Telegramda yozish</button>
+                </div>
+
+                <div style="display:flex; gap:12px;">
+                    <button class="btn btn-outline" style="flex:1;" onclick="toggleWishlist('${ad.id}'); closeModal();">${isSaved ? '❤️ Saqlangan' : '🤍 Saqlash'}</button>
+                    ${navigator.share ? `<button class="btn btn-outline" style="flex:1;" onclick="shareAd('${ad.id}')">📤 Ulashish</button>` : `<button class="btn btn-outline" style="flex:1;" onclick="copyAdLink('${ad.id}')">🔗 Link</button>`}
+                    <button class="btn btn-outline" style="flex:none; color:var(--danger);" onclick="reportAd('${ad.id}')">⚠️</button>
+                </div>
+            `;
+            document.getElementById('modalContent').innerHTML = content;
+            document.getElementById('adModal').style.display = 'block';
+        };
+
+        window.shareAd = async (id) => {
+            const ad = adsData.find(a => a.id === id);
+            try {
+                await navigator.share({
+                    title: `RQBMARKET - ${ad.title}`,
+                    text: `${ad.category} - ${ad.price} $ ga sotiladi. Batafsil platformada!`,
+                    url: window.location.origin + window.location.pathname + '?ad=' + id
+                });
+            } catch (e) {}
+        };
+
+        window.copyAdLink = (id) => {
+            const url = window.location.origin + window.location.pathname + '?ad=' + id;
+            navigator.clipboard.writeText(url).then(() => {
+                showNotify("Link nusxalandi!");
+            });
+        };
+
+        window.closeModal = () => {
+            document.getElementById('adModal').style.display = 'none';
+        };
+
+        window.renderWishlist = () => {
+            const list = document.getElementById('wishlistList');
+            list.innerHTML = '';
+            const t = i18n[currentLang];
+            const filtered = adsData.filter(ad => wishlistData.includes(ad.id));
+            if(filtered.length === 0) {
+                list.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:40px; color:var(--text-secondary);">${t.empty}</div>`;
+                return;
+            }
+            filtered.forEach(ad => list.appendChild(createAdCard(ad, true)));
+        };
+
+        window.renderMyAds = () => {
+            const list = document.getElementById('myAdsList');
+            list.innerHTML = '';
+            const t = i18n[currentLang];
+            const myAds = adsData.filter(ad => ad.userId === currentUser.uid);
+            if(myAds.length === 0) {
+                list.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:40px; color:var(--text-secondary);">${t.empty}</div>`;
+                return;
+            }
+            myAds.forEach(ad => list.appendChild(createAdCard(ad, wishlistData.includes(ad.id), true)));
+        };
+
+        window.deleteAd = async (id) => {
+            if(!confirm('E\'lonni o\'chirmoqchimisiz?')) return;
+            try {
+                await deleteDoc(doc(db, 'ads', id));
+                showNotify("E'lon o'chirildi.");
+                window.closeModal();
+            } catch (error) {
+                handleFirestoreError(error, 'delete', 'ads/' + id);
+            }
+        };
+
+        window.reportAd = async (id) => {
+            showNotify("Shikoyat qabul qilindi.");
+            closeModal();
+            try {
+                await addDoc(collection(db, 'reports'), {
+                    adId: id,
+                    reporterId: currentUser.uid,
+                    status: 'open',
+                    createdAt: serverTimestamp()
+                });
+            } catch (error) {
+                handleFirestoreError(error, 'write', 'reports');
+            }
+        };
+
+        // --- Admin Logic ---
+        window.setAdminTab = (tab, el) => {
+            adminTab = tab;
+            document.querySelectorAll('#page-admin .filter-tab').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+            renderAdminAds();
+        };
+
+        window.renderAdminAds = () => {
+            if(!isAdmin) return;
+            const list = document.getElementById('adminList');
+            list.innerHTML = '';
+            
+            // Stats
+            const total = adsData.length;
+            const pending = adsData.filter(a => a.status === 'pending').length;
+            const approved = adsData.filter(a => a.status === 'approved').length;
+            
+            document.getElementById('admin-stats-total').innerText = 'Total: ' + total;
+            document.getElementById('admin-stats-pending').innerText = pending;
+            document.getElementById('admin-stats-approved').innerText = approved;
+
+            let filtered = adsData;
+            if(adminTab === 'pending') filtered = adsData.filter(ad => ad.status === 'pending');
+            
+            if(filtered.length === 0) {
+                list.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:40px; color:var(--text-secondary);">Bo'sh</div>`;
+                return;
+            }
+            filtered.forEach(ad => list.appendChild(createAdCard(ad, false, false, true)));
+        };
+
+        window.adminAction = async (id, status) => {
+            try {
+                const ad = adsData.find(a => a.id === id);
+                if(status === 'toggleVIP') {
+                    await updateDoc(doc(db, 'ads', id), { isVIP: !ad.isVIP });
+                    showNotify('VIP holati o\'zgardi');
+                } else if(status === 'toggleVerified') {
+                    await updateDoc(doc(db, 'ads', id), { isVerifiedUser: !ad.isVerifiedUser });
+                    showNotify('Tasdiqlanganlik holati o\'zgardi');
+                } else {
+                    await updateDoc(doc(db, 'ads', id), { status });
+                    showNotify('Holat o\'zgardi: ' + status);
+                }
+            } catch (error) {
+                handleFirestoreError(error, 'write', 'ads/' + id);
+            }
+        };
+
+        // --- Utils ---
+        function showNotify(text) {
+            const n = document.getElementById('notification');
+            n.innerText = text;
+            n.style.display = 'block';
+            setTimeout(() => n.style.display = 'none', 3000);
+        }
+
+        function getAverageRating(sellerId) {
+            // Placeholder: Could be implemented if ratings are added
+            return "5.0";
+        }
+
+        async function testConnection() {
+            try { await getDocFromServer(doc(db, 'test', 'connection')); } catch (e) {}
+        }
+
+        // Init
+        const savedLang = localStorage.getItem('lang') || 'uz';
+        updateUI();
+        document.getElementById('langBtn').innerText = currentLang === 'uz' ? 'RU' : 'UZ';
+
+    </script>
+</body>
+</html>

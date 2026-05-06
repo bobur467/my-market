@@ -1,0 +1,130 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- HELPER FUNCTIONS ---
+    function isSignedIn() { return request.auth != null; }
+    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
+    function isAdmin() { 
+      return isSignedIn() && (
+        (request.auth.token.get('email', '') == "mbob20058@gmail.com" && request.auth.token.get('email_verified', false) == true) ||
+        request.auth.uid == "telegram:6678558538" ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+    
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+    
+    function isValidId(id) { 
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); 
+    }
+
+    // --- VALIDATION BLUEPRINTS ---
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['id', 'name', 'role', 'photo', 'createdAt']) &&
+             data.keys().size() == 5 &&
+             data.id == request.auth.uid &&
+             data.name is string && data.name.size() <= 100 &&
+             data.photo is string && data.photo.size() <= 2000 &&
+             data.role == "user" && // Users cannot self-assign admin
+             data.createdAt == request.time;
+    }
+
+    function isValidAd(data) {
+      return data.keys().hasAll(['userId', 'userEmail', 'category', 'title', 'followers', 'price', 'currency', 'description', 'mail', 'phone', 'photo', 'status', 'createdAt', 'views', 'isVIP', 'isVerifiedUser']) &&
+             data.keys().size() == 16 &&
+             data.userId == request.auth.uid &&
+             (data.userEmail == request.auth.token.get('email', '') || data.userEmail == request.auth.token.get('username', '')) &&
+             data.category in ["Instagram", "Telegram", "Premium", "Stars"] &&
+             data.title is string && data.title.size() <= 100 &&
+             data.followers is string && data.followers.size() <= 20 &&
+             data.price is number && data.price >= 0 &&
+             data.currency in ["$", "UZS", "₽"] &&
+             data.description is string && data.description.size() <= 2000 &&
+             data.mail in ["yes", "no"] &&
+             data.phone is string && data.phone.size() <= 50 &&
+             data.photo is string && data.photo.size() <= 1048576 && 
+             data.status == "pending" && 
+             data.views == 0 &&
+             data.isVIP == false &&
+             data.isVerifiedUser == false &&
+             data.createdAt == request.time;
+    }
+
+    function isValidReport(data) {
+      return data.keys().hasAll(['adId', 'reporterId', 'reason', 'status', 'createdAt']) &&
+             data.keys().size() == 5 &&
+             data.reporterId == request.auth.uid &&
+             data.status == "open" &&
+             data.createdAt == request.time;
+    }
+
+    // --- COLLECTION RULES ---
+
+    match /users/{userId} {
+      allow get: if isSignedIn();
+      allow list: if isAdmin();
+      allow create: if isOwner(userId) && isValidUser(incoming());
+      allow update: if isOwner(userId) && 
+                      incoming().diff(existing()).affectedKeys().hasOnly(['name', 'photo']) &&
+                      incoming().name is string && incoming().name.size() <= 100;
+      allow update: if isAdmin();
+    }
+
+    match /ads/{adId} {
+      // Public view for approved ads
+      allow get: if true;
+      allow list: if true; // Secure list queries enforced by client usually, but here we allow public browsing
+      
+      allow create: if isSignedIn() && isValidAd(incoming()) && isValidId(adId);
+      
+      allow update: if (
+        isOwner(existing().userId) && (
+          // Action: Own edit (only if pending)
+          (existing().status == "pending" && 
+           incoming().diff(existing()).affectedKeys().hasOnly(['title', 'category', 'followers', 'price', 'currency', 'description', 'mail', 'phone', 'photo']) &&
+           incoming().price >= 0)
+        )
+      ) || (
+        isAdmin() && (
+          // Action: Admin moderation
+          incoming().diff(existing()).affectedKeys().hasOnly(['status', 'isVIP', 'isVerifiedUser']) &&
+          incoming().get('status', 'pending') in ["approved", "rejected", "pending"]
+        )
+      ) || (
+        // Action: View increment (Anyone)
+        incoming().diff(existing()).affectedKeys().hasOnly(['views']) &&
+        incoming().views == (existing().get('views', 0) + 1)
+      );
+
+      allow delete: if isOwner(existing().userId) || isAdmin();
+    }
+
+    match /reports/{reportId} {
+      allow create: if isSignedIn() && isValidReport(incoming()) && isValidId(reportId);
+      allow read, write: if isAdmin();
+    }
+
+    match /ratings/{ratingId} {
+      allow read: if true;
+      allow create: if isSignedIn() && 
+                    incoming().buyerId == request.auth.uid &&
+                    incoming().sellerId != request.auth.uid && // No self-rating
+                    incoming().score >= 1 && incoming().score <= 5 &&
+                    incoming().createdAt == request.time;
+      allow delete, update: if isAdmin();
+    }
+
+    match /users/{userId}/wishlist/{adId} {
+      allow read, write: if isOwner(userId);
+    }
+
+  }
+}
